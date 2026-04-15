@@ -1,0 +1,9 @@
+# Build
+build
+
+# Environnement variable
+.env
+.env.*
+
+# Key
+*.pem
