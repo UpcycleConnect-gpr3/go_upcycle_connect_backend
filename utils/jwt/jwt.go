@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/utils/response"
 	"net/http"
 	"os"
 
@@ -61,17 +62,18 @@ func VerifyJWT(tokenString string) (string, error) {
 	return userId, nil
 }
 
-func Auth(w http.ResponseWriter, r *http.Request) bool {
+func Auth(w http.ResponseWriter, r *http.Request) string {
 	tokenString := r.Header.Get("Authorization")
 	if tokenString == "" {
-		http.Error(w, "Authorization token required", http.StatusUnauthorized)
-		return false
-	}
-	_, err := VerifyJWT(tokenString)
-	if err != nil {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return false
+		response.NewErrorMessage(w, response.ErrAuthTokenRequired, http.StatusUnauthorized)
+		return ""
 	}
 
-	return true
+	userId, err := VerifyJWT(tokenString)
+	if err != nil {
+		response.NewErrorMessage(w, response.ErrInvalidAuthToken, http.StatusUnauthorized)
+		return ""
+	}
+
+	return userId
 }
