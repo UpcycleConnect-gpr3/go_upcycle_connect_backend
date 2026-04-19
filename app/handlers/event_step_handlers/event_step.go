@@ -4,20 +4,11 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/event_step_actions"
 	"go-upcycle_connect-backend/app/models/event_step_models"
+	"go-upcycle_connect-backend/utils/handler"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
-	"strconv"
 )
-
-func parseEventStepID(w http.ResponseWriter, r *http.Request) (int, bool) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrEventStepNotFound, http.StatusBadRequest)
-		return 0, false
-	}
-	return id, true
-}
 
 func findEventStep(w http.ResponseWriter, id int) bool {
 	var s event_step_models.EventStep
@@ -41,7 +32,7 @@ func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventStepID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventStepNotFound)
 	if !ok {
 		return
 	}
@@ -74,7 +65,7 @@ func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventStepID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventStepNotFound)
 	if !ok {
 		return
 	}
@@ -100,7 +91,7 @@ func UpdateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventStepID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventStepNotFound)
 	if !ok {
 		return
 	}
