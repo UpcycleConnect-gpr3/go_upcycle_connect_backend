@@ -4,20 +4,11 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/step_actions"
 	"go-upcycle_connect-backend/app/models/step_models"
+	"go-upcycle_connect-backend/utils/handler"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
-	"strconv"
 )
-
-func parseStepID(w http.ResponseWriter, r *http.Request) (int, bool) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusBadRequest)
-		return 0, false
-	}
-	return id, true
-}
 
 func findStep(w http.ResponseWriter, id int) bool {
 	var s step_models.Step
@@ -41,7 +32,7 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseStepID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrStepNotFound)
 	if !ok {
 		return
 	}
@@ -74,7 +65,7 @@ func CreateStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseStepID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrStepNotFound)
 	if !ok {
 		return
 	}
@@ -100,7 +91,7 @@ func UpdateStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseStepID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrStepNotFound)
 	if !ok {
 		return
 	}
