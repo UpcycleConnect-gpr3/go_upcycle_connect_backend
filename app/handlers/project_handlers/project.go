@@ -11,6 +11,24 @@ import (
 	"strconv"
 )
 
+func parseProjectID(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+		return 0, false
+	}
+	return id, true
+}
+
+func findProject(w http.ResponseWriter, id int) bool {
+	var p project_models.Project
+	if err := p.Get([]string{"id"}, "id", id); err != nil {
+		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+		return false
+	}
+	return true
+}
+
 func GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	if !jwt.Auth(w, r) {
@@ -30,10 +48,8 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
 	var p project_models.Project
@@ -71,15 +87,11 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
-	var p project_models.Project
-	if err := p.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+	if !findProject(w, id) {
 		return
 	}
 	var dto project_actions.UpdateProjectDTO
@@ -104,15 +116,11 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
-	var p project_models.Project
-	if err := p.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+	if !findProject(w, id) {
 		return
 	}
 	project_models.DeleteProject(id)
@@ -124,10 +132,8 @@ func GetProjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
 	score := project_models.GetProjectScore(id)
@@ -143,15 +149,11 @@ func GetProjectObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
-	var p project_models.Project
-	if err := p.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+	if !findProject(w, id) {
 		return
 	}
 	objects := project_models.GetProjectObjects(id)
@@ -163,14 +165,11 @@ func LinkObjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
-	objectIdStr := r.PathValue("objectId")
-	objectId, err := strconv.Atoi(objectIdStr)
+	objectId, err := strconv.Atoi(r.PathValue("objectId"))
 	if err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
 		return
@@ -184,15 +183,11 @@ func GetProjectStepsHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
-	var p project_models.Project
-	if err := p.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+	if !findProject(w, id) {
 		return
 	}
 	steps := project_models.GetProjectSteps(id)
@@ -204,15 +199,11 @@ func CreateProjectStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	id, ok := parseProjectID(w, r)
+	if !ok {
 		return
 	}
-	var p project_models.Project
-	if err := p.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+	if !findProject(w, id) {
 		return
 	}
 	var dto project_actions.CreateProjectStepDTO
