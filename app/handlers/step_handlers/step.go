@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/step_actions"
 	"go-upcycle_connect-backend/app/models/step_models"
-	"go-upcycle_connect-backend/utils/jwt"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
@@ -31,9 +30,6 @@ func findStep(w http.ResponseWriter, id int) bool {
 
 func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var s step_models.Step
 	var steps []step_models.Step
 	if err := s.All([]string{"id", "title", "description", "`order`", "created_at", "updated_at"}, &steps); err != nil {
@@ -45,9 +41,6 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseStepID(w, r)
 	if !ok {
 		return
@@ -62,9 +55,6 @@ func GetStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var dto step_actions.CreateStepDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
@@ -84,9 +74,6 @@ func CreateStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseStepID(w, r)
 	if !ok {
 		return
@@ -113,9 +100,6 @@ func UpdateStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseStepID(w, r)
 	if !ok {
 		return
