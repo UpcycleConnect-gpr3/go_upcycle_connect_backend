@@ -1,0 +1,62 @@
+services:
+  app_upcycle:
+    build:
+      context: .
+      target: dev
+    container_name: app_upcycle
+    volumes:
+      - .env:/app/.env
+      - ./public_key.pem:/app/public_key.pem
+    depends_on:
+      mariadb_upcycle:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - default
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app_upcycle.rule=Host(`upcycle.localhost`)"
+      - "traefik.http.services.app_upcycle.loadbalancer.server.port=8084"
+
+  mariadb_upcycle:
+    image: mariadb:11
+    container_name: mariadb_upcycle
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+      MARIADB_USER: gouser
+      MARIADB_PASSWORD: password
+      MARIADB_DATABASE: go_upcycle
+    ports:
+      - "3309:3306"
+    volumes:
+      - mariadb_upcycle_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin_upcycle:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_upcycle
+    environment:
+      PMA_HOST: mariadb_upcycle
+      PMA_USER: gouser
+      PMA_PASSWORD: password
+    depends_on:
+      - mariadb_upcycle
+    networks:
+      - default
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pma_upcycle.rule=Host(`pma-upcycle.localhost`)"
+      - "traefik.http.services.pma_upcycle.loadbalancer.server.port=80"
+
+volumes:
+  mariadb_upcycle_data:
+
+networks:
+  traefik_network:
+    external: true

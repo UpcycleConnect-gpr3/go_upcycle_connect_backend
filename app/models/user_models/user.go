@@ -1,58 +1,78 @@
 package user_models
 
 import (
-	"database/sql"
 	"fmt"
 	"go-upcycle_connect-backend/database"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
-	"time"
 
 	"github.com/google/uuid"
 )
 
-const (
-	TABLE = "USERS"
-)
+const TABLE = "USERS"
 
 type User struct {
-	Id        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	Firstname string    `json:"firstname"`
-	Lastname  string    `json:"lastname"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	Id        uuid.UUID `db:"id" json:"id"`
+	Username  string    `db:"username" json:"username"`
+	Firstname string    `db:"firstname" json:"firstname"`
+	Lastname  string    `db:"lastname" json:"lastname"`
+	Email     string    `db:"email" json:"email"`
+	CreatedAt string    `db:"created_at" json:"created_at"`
+	UpdatedAt string    `db:"updated_at" json:"updated_at"`
 }
 
-func GetUserByEmail(email string) *User {
-	user := User{}
-	action := fmt.Sprintf("SELECT USER WHERE USERNAME : %s", email)
+type CreateUserDTO struct {
+	Username  string
+	Firstname string
+	Lastname  string
+	Email     string
+}
 
-	row := database.UpcycleConnect.QueryRow("SELECT id, email FROM "+TABLE+" WHERE email = ?", email)
+type UpdateUserDTO struct {
+	Username  string
+	Firstname string
+	Lastname  string
+	Email     string
+}
 
-	err := row.Scan(&user.Id, &user.Email)
+func (user *User) Get(columns []string, by string, value any) error {
+	return db.GetQuery[User](database.UpcycleConnect, TABLE, columns, by, value, user)
+}
 
+func (user *User) All(columns []string, dest *[]User) error {
+	return db.AllQuery[User](database.UpcycleConnect, TABLE, columns, dest)
+}
+
+func CreateUser(dto CreateUserDTO) *User {
+	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Username)
+	id := uuid.New()
+	_, err := database.UpcycleConnect.Exec(
+		"INSERT INTO "+TABLE+" (id, username, firstname, lastname, email) VALUES (?, ?, ?, ?, ?)",
+		id, dto.Username, dto.Firstname, dto.Lastname, dto.Email,
+	)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil
-		}
 		log.Database(action, err)
 		return nil
 	}
-
-	if err = row.Err(); err != nil {
-		log.Database(action, err)
-		return nil
-	}
-
-	return &user
+	return &User{Id: id}
 }
 
-func CreateUser(user User) {
-	action := fmt.Sprintf("INSERT INTO "+TABLE+" : %s", user.Email)
+func UpdateUser(id uuid.UUID, dto UpdateUserDTO) *User {
+	action := fmt.Sprintf("UPDATE %s WHERE id: %s", TABLE, id.String())
+	_, err := database.UpcycleConnect.Exec(
+		"UPDATE "+TABLE+" SET username=?, firstname=?, lastname=?, email=? WHERE id=?",
+		dto.Username, dto.Firstname, dto.Lastname, dto.Email, id,
+	)
+	if err != nil {
+		log.Database(action, err)
+		return nil
+	}
+	return &User{Id: id}
+}
 
-	_, err := database.UpcycleConnect.Exec("INSERT INTO "+TABLE+" (id, email) VALUES (?, ?)", "uuid.New().String()", user.Email)
-
+func DeleteUser(id uuid.UUID) {
+	action := fmt.Sprintf("DELETE FROM %s WHERE id: %s", TABLE, id.String())
+	_, err := database.UpcycleConnect.Exec("DELETE FROM "+TABLE+" WHERE id=?", id)
 	if err != nil {
 		log.Database(action, err)
 	}

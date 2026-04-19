@@ -1,5 +1,7 @@
 package database
 
-import "database/sql"
+import (
+	"github.com/jmoiron/sqlx"
+)
 
-var UpcycleConnect *sql.DB
+var UpcycleConnect *sqlx.DB

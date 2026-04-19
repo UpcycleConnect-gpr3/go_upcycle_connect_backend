@@ -70,6 +70,7 @@ var httpStatusTexts = map[int]string{
 }
 
 const (
+	ErrInvalidValue         = "Invalid Value"
 	ErrAuthFailed           = "Credentials do not match"
 	ErrInvalidBody          = "Incorrect body format"
 	ErrJson                 = "Json parse error"
@@ -79,10 +80,16 @@ const (
 	ErrEnableTOTP           = "Failed to enable TOTP"
 	ErrGenerateTOTP         = "Failed to generate TOTP"
 	ErrDisableTOTP          = "Failed to disable TOTP"
-	ErrAuthTokenRequired    = "Authorization token required"
-	ErrInvalidAuthToken     = "Invalid authorization token"
-	ErrInvalidOrExpiredHash = "Invalid or expired hash"
-	ErrFetchingTOTPRecord   = "Failed to fetch TOTP record"
+	ErrAuthTokenRequired      = "Authorization token required"
+	ErrInvalidAuthToken       = "Invalid authorization token"
+	ErrInvalidOrExpiredHash   = "Invalid or expired hash"
+	ErrFetchingTOTPRecord     = "Failed to fetch TOTP record"
+	ErrDeliveryMethodNotFound = "Delivery method not found"
+	ErrObjectNotFound         = "Object not found"
+	ErrProjectNotFound        = "Project not found"
+	ErrStepNotFound           = "Step not found"
+	ErrEventNotFound          = "Event not found"
+	ErrEventStepNotFound      = "Event step not found"
 )
 
 const (
@@ -90,6 +97,9 @@ const (
 	SuccessDisableTOTP  = "TOTP disabled successfully"
 	SuccessGenerateTOTP = "TOTP key generated successfully"
 	SuccessLogin        = "Login successful"
+	SuccessDeleted      = "Deleted successfully"
+	SuccessLinked       = "Linked successfully"
+	SuccessUnlinked     = "Unlinked successfully"
 )
 
 type Response struct {
