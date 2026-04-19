@@ -11,6 +11,33 @@ import (
 	"strconv"
 )
 
+func parseObjectID(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+		return 0, false
+	}
+	return id, true
+}
+
+func findObject(w http.ResponseWriter, id int) bool {
+	var obj object_models.Object
+	if err := obj.Get([]string{"id"}, "id", id); err != nil {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
+		return false
+	}
+	return true
+}
+
+func parsePathInt(w http.ResponseWriter, r *http.Request, key string, notFoundErr string) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue(key))
+	if err != nil {
+		response.NewErrorMessage(w, notFoundErr, http.StatusBadRequest)
+		return 0, false
+	}
+	return id, true
+}
+
 func GetObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	if !jwt.Auth(w, r) {
@@ -30,10 +57,8 @@ func GetObjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
 	var obj object_models.Object
@@ -71,15 +96,11 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	var obj object_models.Object
-	if err := obj.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
+	if !findObject(w, id) {
 		return
 	}
 	var dto object_actions.UpdateObjectDTO
@@ -104,15 +125,11 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	var obj object_models.Object
-	if err := obj.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
+	if !findObject(w, id) {
 		return
 	}
 	object_models.DeleteObject(id)
@@ -124,10 +141,8 @@ func GetObjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
 	score := object_models.GetObjectScore(id)
@@ -143,15 +158,11 @@ func GetObjectDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	var obj object_models.Object
-	if err := obj.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
+	if !findObject(w, id) {
 		return
 	}
 	dms := object_models.GetObjectDeliveryMethods(id)
@@ -163,16 +174,12 @@ func LinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	dmIdStr := r.PathValue("deliveryMethodId")
-	dmId, err := strconv.Atoi(dmIdStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrDeliveryMethodNotFound, http.StatusBadRequest)
+	dmId, ok := parsePathInt(w, r, "deliveryMethodId", response.ErrDeliveryMethodNotFound)
+	if !ok {
 		return
 	}
 	object_actions.LinkDeliveryMethod(id, dmId)
@@ -184,16 +191,12 @@ func UnlinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	dmIdStr := r.PathValue("deliveryMethodId")
-	dmId, err := strconv.Atoi(dmIdStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrDeliveryMethodNotFound, http.StatusBadRequest)
+	dmId, ok := parsePathInt(w, r, "deliveryMethodId", response.ErrDeliveryMethodNotFound)
+	if !ok {
 		return
 	}
 	object_actions.UnlinkDeliveryMethod(id, dmId)
@@ -205,15 +208,11 @@ func GetObjectProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	var obj object_models.Object
-	if err := obj.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
+	if !findObject(w, id) {
 		return
 	}
 	projects := object_models.GetObjectProjects(id)
@@ -225,16 +224,12 @@ func LinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	projectIdStr := r.PathValue("projectId")
-	projectId, err := strconv.Atoi(projectIdStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	projectId, ok := parsePathInt(w, r, "projectId", response.ErrProjectNotFound)
+	if !ok {
 		return
 	}
 	object_actions.LinkProject(id, projectId)
@@ -246,16 +241,12 @@ func UnlinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	projectIdStr := r.PathValue("projectId")
-	projectId, err := strconv.Atoi(projectIdStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
+	projectId, ok := parsePathInt(w, r, "projectId", response.ErrProjectNotFound)
+	if !ok {
 		return
 	}
 	object_actions.UnlinkProject(id, projectId)
@@ -267,15 +258,11 @@ func GetObjectUsersHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
-	var obj object_models.Object
-	if err := obj.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
+	if !findObject(w, id) {
 		return
 	}
 	users := object_models.GetObjectUsers(id)
@@ -287,10 +274,8 @@ func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
 	userId := r.PathValue("userId")
@@ -307,10 +292,8 @@ func UnlinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	id, ok := parseObjectID(w, r)
+	if !ok {
 		return
 	}
 	userId := r.PathValue("userId")
