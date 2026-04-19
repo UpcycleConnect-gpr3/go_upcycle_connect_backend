@@ -11,6 +11,24 @@ import (
 	"strconv"
 )
 
+func parseEventID(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusBadRequest)
+		return 0, false
+	}
+	return id, true
+}
+
+func findEvent(w http.ResponseWriter, id int) bool {
+	var e event_models.Event
+	if err := e.Get([]string{"id"}, "id", id); err != nil {
+		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusNotFound)
+		return false
+	}
+	return true
+}
+
 func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	if !jwt.Auth(w, r) {
@@ -30,10 +48,8 @@ func GetEventHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusBadRequest)
+	id, ok := parseEventID(w, r)
+	if !ok {
 		return
 	}
 	var e event_models.Event
@@ -71,15 +87,11 @@ func UpdateEventHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusBadRequest)
+	id, ok := parseEventID(w, r)
+	if !ok {
 		return
 	}
-	var e event_models.Event
-	if err := e.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusNotFound)
+	if !findEvent(w, id) {
 		return
 	}
 	var dto event_actions.UpdateEventDTO
@@ -104,15 +116,11 @@ func DeleteEventHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusBadRequest)
+	id, ok := parseEventID(w, r)
+	if !ok {
 		return
 	}
-	var e event_models.Event
-	if err := e.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusNotFound)
+	if !findEvent(w, id) {
 		return
 	}
 	event_models.DeleteEvent(id)
@@ -124,15 +132,11 @@ func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusBadRequest)
+	id, ok := parseEventID(w, r)
+	if !ok {
 		return
 	}
-	var e event_models.Event
-	if err := e.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusNotFound)
+	if !findEvent(w, id) {
 		return
 	}
 	steps := event_models.GetEventSteps(id)
@@ -144,15 +148,11 @@ func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusBadRequest)
+	id, ok := parseEventID(w, r)
+	if !ok {
 		return
 	}
-	var e event_models.Event
-	if err := e.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusNotFound)
+	if !findEvent(w, id) {
 		return
 	}
 	var dto event_actions.CreateEventStepDTO
