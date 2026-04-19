@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/event_step_actions"
 	"go-upcycle_connect-backend/app/models/event_step_models"
-	"go-upcycle_connect-backend/utils/jwt"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
@@ -31,9 +30,6 @@ func findEventStep(w http.ResponseWriter, id int) bool {
 
 func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var s event_step_models.EventStep
 	var steps []event_step_models.EventStep
 	if err := s.All([]string{"id", "event_id", "title", "`order`", "created_at", "updated_at"}, &steps); err != nil {
@@ -45,9 +41,6 @@ func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventStepID(w, r)
 	if !ok {
 		return
@@ -62,9 +55,6 @@ func GetEventStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var dto event_step_actions.CreateEventStepDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
@@ -84,9 +74,6 @@ func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventStepID(w, r)
 	if !ok {
 		return
@@ -113,9 +100,6 @@ func UpdateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventStepID(w, r)
 	if !ok {
 		return
