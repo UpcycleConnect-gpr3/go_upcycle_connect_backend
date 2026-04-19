@@ -4,20 +4,11 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/project_actions"
 	"go-upcycle_connect-backend/app/models/project_models"
+	"go-upcycle_connect-backend/utils/handler"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
-	"strconv"
 )
-
-func parseProjectID(w http.ResponseWriter, r *http.Request) (int, bool) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusBadRequest)
-		return 0, false
-	}
-	return id, true
-}
 
 func findProject(w http.ResponseWriter, id int) bool {
 	var p project_models.Project
@@ -41,7 +32,7 @@ func GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -74,7 +65,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -100,7 +91,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -113,7 +104,7 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -127,7 +118,7 @@ func GetProjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -140,13 +131,12 @@ func GetProjectObjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
-	objectId, err := strconv.Atoi(r.PathValue("objectId"))
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+	objectId, ok := handler.ParsePathInt(w, r, "objectId", response.ErrObjectNotFound)
+	if !ok {
 		return
 	}
 	project_actions.LinkObject(id, objectId)
@@ -155,7 +145,7 @@ func LinkObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectStepsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -168,7 +158,7 @@ func GetProjectStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateProjectStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseProjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
