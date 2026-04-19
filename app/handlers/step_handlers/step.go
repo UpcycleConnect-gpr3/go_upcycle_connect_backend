@@ -11,6 +11,24 @@ import (
 	"strconv"
 )
 
+func parseStepID(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusBadRequest)
+		return 0, false
+	}
+	return id, true
+}
+
+func findStep(w http.ResponseWriter, id int) bool {
+	var s step_models.Step
+	if err := s.Get([]string{"id"}, "id", id); err != nil {
+		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
+		return false
+	}
+	return true
+}
+
 func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	if !jwt.Auth(w, r) {
@@ -30,10 +48,8 @@ func GetStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusBadRequest)
+	id, ok := parseStepID(w, r)
+	if !ok {
 		return
 	}
 	var s step_models.Step
@@ -71,15 +87,11 @@ func UpdateStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusBadRequest)
+	id, ok := parseStepID(w, r)
+	if !ok {
 		return
 	}
-	var s step_models.Step
-	if err := s.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
+	if !findStep(w, id) {
 		return
 	}
 	var dto step_actions.UpdateStepDTO
@@ -104,15 +116,11 @@ func DeleteStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !jwt.Auth(w, r) {
 		return
 	}
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusBadRequest)
+	id, ok := parseStepID(w, r)
+	if !ok {
 		return
 	}
-	var s step_models.Step
-	if err := s.Get([]string{"id"}, "id", id); err != nil {
-		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
+	if !findStep(w, id) {
 		return
 	}
 	step_models.DeleteStep(id)
