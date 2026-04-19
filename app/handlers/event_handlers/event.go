@@ -4,20 +4,11 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/event_actions"
 	"go-upcycle_connect-backend/app/models/event_models"
+	"go-upcycle_connect-backend/utils/handler"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
-	"strconv"
 )
-
-func parseEventID(w http.ResponseWriter, r *http.Request) (int, bool) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusBadRequest)
-		return 0, false
-	}
-	return id, true
-}
 
 func findEvent(w http.ResponseWriter, id int) bool {
 	var e event_models.Event
@@ -41,7 +32,7 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventNotFound)
 	if !ok {
 		return
 	}
@@ -74,7 +65,7 @@ func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventNotFound)
 	if !ok {
 		return
 	}
@@ -100,7 +91,7 @@ func UpdateEventHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventNotFound)
 	if !ok {
 		return
 	}
@@ -113,7 +104,7 @@ func DeleteEventHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventNotFound)
 	if !ok {
 		return
 	}
@@ -126,7 +117,7 @@ func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseEventID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrEventNotFound)
 	if !ok {
 		return
 	}
