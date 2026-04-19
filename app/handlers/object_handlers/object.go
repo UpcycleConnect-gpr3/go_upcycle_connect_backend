@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/object_actions"
 	"go-upcycle_connect-backend/app/models/object_models"
-	"go-upcycle_connect-backend/utils/jwt"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
@@ -40,9 +39,6 @@ func parsePathInt(w http.ResponseWriter, r *http.Request, key string, notFoundEr
 
 func GetObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var obj object_models.Object
 	var objects []object_models.Object
 	if err := obj.All([]string{"id", "name", "material", "`condition`", "description", "upcycling_score", "created_at", "updated_at"}, &objects); err != nil {
@@ -54,9 +50,6 @@ func GetObjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -71,9 +64,6 @@ func GetObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var dto object_actions.CreateObjectDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
@@ -93,9 +83,6 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -122,9 +109,6 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -138,9 +122,6 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -155,9 +136,6 @@ func GetObjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -171,9 +149,6 @@ func GetObjectDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -188,9 +163,6 @@ func LinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -205,9 +177,6 @@ func UnlinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -221,9 +190,6 @@ func GetObjectProjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -238,9 +204,6 @@ func LinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -255,9 +218,6 @@ func UnlinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectUsersHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -271,9 +231,6 @@ func GetObjectUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
@@ -289,9 +246,6 @@ func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseObjectID(w, r)
 	if !ok {
 		return
