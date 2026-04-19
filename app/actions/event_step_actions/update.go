@@ -10,21 +10,20 @@ type UpdateEventStepDTO struct {
 	Order int    `json:"order"`
 }
 
-func validateUpdate(dto UpdateEventStepDTO) []rules.ValidationError {
+func UpdateEventStep(id int, dto UpdateEventStepDTO) ([]rules.ValidationError, *event_step_models.EventStep) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Title, 1, "title", &errs)
 	rules.StringMaxLength(dto.Title, 255, "title", &errs)
-	return errs
-}
 
-func UpdateEventStep(id int, dto UpdateEventStepDTO) (*event_step_models.EventStep, []rules.ValidationError) {
-	errs := validateUpdate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	s := event_step_models.UpdateEventStep(id, event_step_models.UpdateEventStepDTO{
+
+	eventStep := event_step_models.UpdateEventStep(id, event_step_models.UpdateEventStepDTO{
 		Title: dto.Title,
 		Order: dto.Order,
 	})
-	return s, nil
+
+	return nil, eventStep
 }

@@ -11,22 +11,21 @@ type CreateStepDTO struct {
 	Order       int    `json:"order"`
 }
 
-func validateCreate(dto CreateStepDTO) []rules.ValidationError {
+func CreateStep(dto CreateStepDTO) ([]rules.ValidationError, *step_models.Step) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Title, 1, "title", &errs)
 	rules.StringMaxLength(dto.Title, 255, "title", &errs)
-	return errs
-}
 
-func CreateStep(dto CreateStepDTO) (*step_models.Step, []rules.ValidationError) {
-	errs := validateCreate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	s := step_models.CreateStep(step_models.CreateStepDTO{
+
+	step := step_models.CreateStep(step_models.CreateStepDTO{
 		Title:       dto.Title,
 		Description: dto.Description,
 		Order:       dto.Order,
 	})
-	return s, nil
+
+	return nil, step
 }

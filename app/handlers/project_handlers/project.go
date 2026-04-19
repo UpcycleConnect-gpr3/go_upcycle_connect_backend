@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/project_actions"
 	"go-upcycle_connect-backend/app/models/project_models"
-	"go-upcycle_connect-backend/utils/handler"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
 )
@@ -23,7 +23,8 @@ func GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var p project_models.Project
 	var projects []project_models.Project
-	if err := p.All([]string{"id", "name", "description", "score", "created_at", "updated_at"}, &projects); err != nil {
+	columns := []string{"id", "name", "description", "score", "created_at", "updated_at"}
+	if err := p.All(columns, &projects); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
 	}
@@ -32,12 +33,13 @@ func GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
 	var p project_models.Project
-	if err := p.Get([]string{"id", "name", "description", "score", "created_at", "updated_at"}, "id", id); err != nil {
+	columns := []string{"id", "name", "description", "score", "created_at", "updated_at"}
+	if err := p.Get(columns, "id", id); err != nil {
 		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
 		return
 	}
@@ -48,25 +50,25 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var dto project_actions.CreateProjectDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
+		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
-	p, errs := project_actions.CreateProject(dto)
-	if len(errs) > 0 {
-		response.NewValidationError(w, response.ErrInvalidBody, errs)
+	validationErrors, project := project_actions.CreateProject(dto)
+	if len(validationErrors) > 0 {
+		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
 		return
 	}
-	if p == nil {
-		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusInternalServerError)
+	if project == nil {
+		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, p)
+	response.NewSuccessData(w, map[string]int{"id": project.Id})
 }
 
 func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
 	if !findProject(w, id) {
@@ -74,38 +76,38 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var dto project_actions.UpdateProjectDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
+		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
-	updated, errs := project_actions.UpdateProject(id, dto)
-	if len(errs) > 0 {
-		response.NewValidationError(w, response.ErrInvalidBody, errs)
+	validationErrors, updated := project_actions.UpdateProject(id, dto)
+	if len(validationErrors) > 0 {
+		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
 		return
 	}
 	if updated == nil {
 		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, updated)
+	response.NewSuccessData(w, map[string]int{"id": updated.Id})
 }
 
 func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
 	if !findProject(w, id) {
 		return
 	}
 	project_models.DeleteProject(id)
-	response.NewSuccessMessage(w, response.SuccessDeleted)
+	response.NewSuccessMessage(w, "Project deleted")
 }
 
 func GetProjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
 	score := project_models.GetProjectScore(id)
@@ -118,8 +120,8 @@ func GetProjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
 	if !findProject(w, id) {
@@ -131,12 +133,12 @@ func GetProjectObjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
-	objectId, ok := handler.ParsePathInt(w, r, "objectId", response.ErrObjectNotFound)
-	if !ok {
+	objectId := request.Request(r, "objectId").ConvertToInt(w)
+	if objectId == -1 {
 		return
 	}
 	project_actions.LinkObject(id, objectId)
@@ -145,8 +147,8 @@ func LinkObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectStepsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
 	if !findProject(w, id) {
@@ -158,8 +160,8 @@ func GetProjectStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateProjectStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := handler.ParsePathInt(w, r, "id", response.ErrProjectNotFound)
-	if !ok {
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
 		return
 	}
 	if !findProject(w, id) {
@@ -167,17 +169,17 @@ func CreateProjectStepHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var dto project_actions.CreateProjectStepDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
+		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
-	s, errs := project_actions.CreateProjectStep(id, dto)
-	if len(errs) > 0 {
-		response.NewValidationError(w, response.ErrInvalidBody, errs)
+	validationErrors, projectStep := project_actions.CreateProjectStep(id, dto)
+	if len(validationErrors) > 0 {
+		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
 		return
 	}
-	if s == nil {
+	if projectStep == nil {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, s)
+	response.NewSuccessData(w, map[string]int{"id": projectStep.Id})
 }

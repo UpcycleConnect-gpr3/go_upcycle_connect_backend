@@ -10,21 +10,20 @@ type UpdateProjectDTO struct {
 	Description string `json:"description"`
 }
 
-func validateUpdate(dto UpdateProjectDTO) []rules.ValidationError {
+func UpdateProject(id int, dto UpdateProjectDTO) ([]rules.ValidationError, *project_models.Project) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
 	rules.StringMaxLength(dto.Name, 255, "name", &errs)
-	return errs
-}
 
-func UpdateProject(id int, dto UpdateProjectDTO) (*project_models.Project, []rules.ValidationError) {
-	errs := validateUpdate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	p := project_models.UpdateProject(id, project_models.UpdateProjectDTO{
+
+	project := project_models.UpdateProject(id, project_models.UpdateProjectDTO{
 		Name:        dto.Name,
 		Description: dto.Description,
 	})
-	return p, nil
+
+	return nil, project
 }

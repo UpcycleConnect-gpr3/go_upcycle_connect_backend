@@ -11,22 +11,21 @@ type UpdateEventDTO struct {
 	Location string `json:"location"`
 }
 
-func validateUpdate(dto UpdateEventDTO) []rules.ValidationError {
+func UpdateEvent(id int, dto UpdateEventDTO) ([]rules.ValidationError, *event_models.Event) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Title, 1, "title", &errs)
 	rules.StringMaxLength(dto.Title, 255, "title", &errs)
-	return errs
-}
 
-func UpdateEvent(id int, dto UpdateEventDTO) (*event_models.Event, []rules.ValidationError) {
-	errs := validateUpdate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	e := event_models.UpdateEvent(id, event_models.UpdateEventDTO{
+
+	event := event_models.UpdateEvent(id, event_models.UpdateEventDTO{
 		Title:    dto.Title,
 		Date:     dto.Date,
 		Location: dto.Location,
 	})
-	return e, nil
+
+	return nil, event
 }

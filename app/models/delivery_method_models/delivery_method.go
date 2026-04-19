@@ -10,9 +10,9 @@ import (
 const TABLE = "DELIVERY_METHODS"
 
 type DeliveryMethod struct {
-	Id        int     `json:"id"`
-	Name      string  `json:"name"`
-	Cost      float64 `json:"cost"`
+	Id        int     `db:"id" json:"id"`
+	Name      string  `db:"name" json:"name"`
+	Cost      float64 `db:"cost" json:"cost"`
 	CreatedAt string  `db:"created_at" json:"created_at"`
 	UpdatedAt string  `db:"updated_at" json:"updated_at"`
 }

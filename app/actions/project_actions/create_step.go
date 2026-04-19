@@ -10,18 +10,16 @@ type CreateProjectStepDTO struct {
 	Order int    `json:"order"`
 }
 
-func validateCreateStep(dto CreateProjectStepDTO) []rules.ValidationError {
+func CreateProjectStep(projectID int, dto CreateProjectStepDTO) ([]rules.ValidationError, *project_models.StepSummary) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Title, 1, "title", &errs)
 	rules.StringMaxLength(dto.Title, 255, "title", &errs)
-	return errs
-}
 
-func CreateProjectStep(projectID int, dto CreateProjectStepDTO) (*project_models.StepSummary, []rules.ValidationError) {
-	errs := validateCreateStep(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	s := project_models.CreateProjectStep(projectID, dto.Title, dto.Order)
-	return s, nil
+
+	stepSummary := project_models.CreateProjectStep(projectID, dto.Title, dto.Order)
+	return nil, stepSummary
 }

@@ -12,23 +12,22 @@ type CreateObjectDTO struct {
 	Description string `json:"description"`
 }
 
-func validateCreate(dto CreateObjectDTO) []rules.ValidationError {
+func CreateObject(dto CreateObjectDTO) ([]rules.ValidationError, *object_models.Object) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
 	rules.StringMaxLength(dto.Name, 255, "name", &errs)
-	return errs
-}
 
-func CreateObject(dto CreateObjectDTO) (*object_models.Object, []rules.ValidationError) {
-	errs := validateCreate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
+
 	obj := object_models.CreateObject(object_models.CreateObjectDTO{
 		Name:        dto.Name,
 		Material:    dto.Material,
 		Condition:   dto.Condition,
 		Description: dto.Description,
 	})
-	return obj, nil
+
+	return nil, obj
 }

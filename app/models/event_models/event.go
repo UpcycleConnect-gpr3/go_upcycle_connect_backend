@@ -5,18 +5,17 @@ import (
 	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
-	"time"
 )
 
 const TABLE = "EVENTS"
 
 type Event struct {
-	Id        int       `json:"id"`
-	Title     string    `json:"title"`
-	Date      string    `json:"date"`
-	Location  string    `json:"location"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	Id        int    `db:"id" json:"id"`
+	Title     string `db:"title" json:"title"`
+	Date      string `db:"date" json:"date"`
+	Location  string `db:"location" json:"location"`
+	CreatedAt string `db:"created_at" json:"created_at"`
+	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
 
 type CreateEventDTO struct {

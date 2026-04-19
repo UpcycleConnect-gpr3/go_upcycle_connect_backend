@@ -5,20 +5,19 @@ import (
 	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
-	"time"
 )
 
 const TABLE = "OBJECTS"
 
 type Object struct {
-	Id             int       `json:"id"`
-	Name           string    `json:"name"`
-	Material       string    `json:"material"`
-	Condition      string    `json:"condition"`
-	Description    string    `json:"description"`
-	UpcyclingScore int       `db:"upcycling_score" json:"upcycling_score"`
-	CreatedAt      time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
+	Id             int    `db:"id" json:"id"`
+	Name           string `db:"name" json:"name"`
+	Material       string `db:"material" json:"material"`
+	Condition      string `db:"condition" json:"condition"`
+	Description    string `db:"description" json:"description"`
+	UpcyclingScore int    `db:"upcycling_score" json:"upcycling_score"`
+	CreatedAt      string `db:"created_at" json:"created_at"`
+	UpdatedAt      string `db:"updated_at" json:"updated_at"`
 }
 
 type CreateObjectDTO struct {

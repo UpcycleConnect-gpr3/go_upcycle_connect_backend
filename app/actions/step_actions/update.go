@@ -11,22 +11,21 @@ type UpdateStepDTO struct {
 	Order       int    `json:"order"`
 }
 
-func validateUpdate(dto UpdateStepDTO) []rules.ValidationError {
+func UpdateStep(id int, dto UpdateStepDTO) ([]rules.ValidationError, *step_models.Step) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Title, 1, "title", &errs)
 	rules.StringMaxLength(dto.Title, 255, "title", &errs)
-	return errs
-}
 
-func UpdateStep(id int, dto UpdateStepDTO) (*step_models.Step, []rules.ValidationError) {
-	errs := validateUpdate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	s := step_models.UpdateStep(id, step_models.UpdateStepDTO{
+
+	step := step_models.UpdateStep(id, step_models.UpdateStepDTO{
 		Title:       dto.Title,
 		Description: dto.Description,
 		Order:       dto.Order,
 	})
-	return s, nil
+
+	return nil, step
 }

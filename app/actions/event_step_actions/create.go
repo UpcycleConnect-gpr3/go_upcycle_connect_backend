@@ -11,22 +11,21 @@ type CreateEventStepDTO struct {
 	Order   int    `json:"order"`
 }
 
-func validateCreate(dto CreateEventStepDTO) []rules.ValidationError {
+func CreateEventStep(dto CreateEventStepDTO) ([]rules.ValidationError, *event_step_models.EventStep) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Title, 1, "title", &errs)
 	rules.StringMaxLength(dto.Title, 255, "title", &errs)
-	return errs
-}
 
-func CreateEventStep(dto CreateEventStepDTO) (*event_step_models.EventStep, []rules.ValidationError) {
-	errs := validateCreate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	s := event_step_models.CreateEventStep(event_step_models.CreateEventStepDTO{
+
+	eventStep := event_step_models.CreateEventStep(event_step_models.CreateEventStepDTO{
 		EventId: dto.EventId,
 		Title:   dto.Title,
 		Order:   dto.Order,
 	})
-	return s, nil
+
+	return nil, eventStep
 }

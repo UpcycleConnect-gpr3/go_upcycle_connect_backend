@@ -12,23 +12,22 @@ type UpdateObjectDTO struct {
 	Description string `json:"description"`
 }
 
-func validateUpdate(dto UpdateObjectDTO) []rules.ValidationError {
+func UpdateObject(id int, dto UpdateObjectDTO) ([]rules.ValidationError, *object_models.Object) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
 	rules.StringMaxLength(dto.Name, 255, "name", &errs)
-	return errs
-}
 
-func UpdateObject(id int, dto UpdateObjectDTO) (*object_models.Object, []rules.ValidationError) {
-	errs := validateUpdate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
+
 	obj := object_models.UpdateObject(id, object_models.UpdateObjectDTO{
 		Name:        dto.Name,
 		Material:    dto.Material,
 		Condition:   dto.Condition,
 		Description: dto.Description,
 	})
-	return obj, nil
+
+	return nil, obj
 }

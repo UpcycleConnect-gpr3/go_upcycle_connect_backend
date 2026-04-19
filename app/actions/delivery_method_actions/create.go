@@ -10,21 +10,20 @@ type CreateDeliveryMethodDTO struct {
 	Cost float64 `json:"cost"`
 }
 
-func validateCreate(dto CreateDeliveryMethodDTO) []rules.ValidationError {
+func CreateDeliveryMethod(dto CreateDeliveryMethodDTO) ([]rules.ValidationError, *delivery_method_models.DeliveryMethod) {
 	var errs []rules.ValidationError
+
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
 	rules.StringMaxLength(dto.Name, 255, "name", &errs)
-	return errs
-}
 
-func CreateDeliveryMethod(dto CreateDeliveryMethodDTO) (*delivery_method_models.DeliveryMethod, []rules.ValidationError) {
-	errs := validateCreate(dto)
 	if len(errs) > 0 {
-		return nil, errs
+		return errs, nil
 	}
-	dm := delivery_method_models.CreateDeliveryMethod(delivery_method_models.CreateDeliveryMethodDTO{
+
+	deliveryMethod := delivery_method_models.CreateDeliveryMethod(delivery_method_models.CreateDeliveryMethodDTO{
 		Name: dto.Name,
 		Cost: dto.Cost,
 	})
-	return dm, nil
+
+	return nil, deliveryMethod
 }
