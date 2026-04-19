@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/event_actions"
 	"go-upcycle_connect-backend/app/models/event_models"
-	"go-upcycle_connect-backend/utils/jwt"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
@@ -31,9 +30,6 @@ func findEvent(w http.ResponseWriter, id int) bool {
 
 func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var e event_models.Event
 	var events []event_models.Event
 	if err := e.All([]string{"id", "title", "date", "location", "created_at", "updated_at"}, &events); err != nil {
@@ -45,9 +41,6 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventID(w, r)
 	if !ok {
 		return
@@ -62,9 +55,6 @@ func GetEventHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	var dto event_actions.CreateEventDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
@@ -84,9 +74,6 @@ func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventID(w, r)
 	if !ok {
 		return
@@ -113,9 +100,6 @@ func UpdateEventHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventID(w, r)
 	if !ok {
 		return
@@ -129,9 +113,6 @@ func DeleteEventHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventID(w, r)
 	if !ok {
 		return
@@ -145,9 +126,6 @@ func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	if !jwt.Auth(w, r) {
-		return
-	}
 	id, ok := parseEventID(w, r)
 	if !ok {
 		return
