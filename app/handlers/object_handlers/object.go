@@ -4,20 +4,11 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/object_actions"
 	"go-upcycle_connect-backend/app/models/object_models"
+	"go-upcycle_connect-backend/utils/handler"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
-	"strconv"
 )
-
-func parseObjectID(w http.ResponseWriter, r *http.Request) (int, bool) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
-		return 0, false
-	}
-	return id, true
-}
 
 func findObject(w http.ResponseWriter, id int) bool {
 	var obj object_models.Object
@@ -26,15 +17,6 @@ func findObject(w http.ResponseWriter, id int) bool {
 		return false
 	}
 	return true
-}
-
-func parsePathInt(w http.ResponseWriter, r *http.Request, key string, notFoundErr string) (int, bool) {
-	id, err := strconv.Atoi(r.PathValue(key))
-	if err != nil {
-		response.NewErrorMessage(w, notFoundErr, http.StatusBadRequest)
-		return 0, false
-	}
-	return id, true
 }
 
 func GetObjectsHandler(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +32,7 @@ func GetObjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -83,7 +65,7 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -109,7 +91,7 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -122,7 +104,7 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -136,7 +118,7 @@ func GetObjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -149,11 +131,11 @@ func GetObjectDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
-	dmId, ok := parsePathInt(w, r, "deliveryMethodId", response.ErrDeliveryMethodNotFound)
+	dmId, ok := handler.ParsePathInt(w, r, "deliveryMethodId", response.ErrDeliveryMethodNotFound)
 	if !ok {
 		return
 	}
@@ -163,11 +145,11 @@ func LinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
-	dmId, ok := parsePathInt(w, r, "deliveryMethodId", response.ErrDeliveryMethodNotFound)
+	dmId, ok := handler.ParsePathInt(w, r, "deliveryMethodId", response.ErrDeliveryMethodNotFound)
 	if !ok {
 		return
 	}
@@ -177,7 +159,7 @@ func UnlinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -190,11 +172,11 @@ func GetObjectProjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
-	projectId, ok := parsePathInt(w, r, "projectId", response.ErrProjectNotFound)
+	projectId, ok := handler.ParsePathInt(w, r, "projectId", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -204,11 +186,11 @@ func LinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
-	projectId, ok := parsePathInt(w, r, "projectId", response.ErrProjectNotFound)
+	projectId, ok := handler.ParsePathInt(w, r, "projectId", response.ErrProjectNotFound)
 	if !ok {
 		return
 	}
@@ -218,7 +200,7 @@ func UnlinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectUsersHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -231,7 +213,7 @@ func GetObjectUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
@@ -246,7 +228,7 @@ func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id, ok := parseObjectID(w, r)
+	id, ok := handler.ParsePathInt(w, r, "id", response.ErrObjectNotFound)
 	if !ok {
 		return
 	}
