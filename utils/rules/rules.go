@@ -47,12 +47,19 @@ func IntMaxLength(value int, max int, attribute string, errs *[]ValidationError)
 }
 
 func MustContainsAny(value string, characters string, number int, attribute string, errs *[]ValidationError) {
-	if !strings.ContainsAny(value, characters) {
-		*errs = append(*errs, ValidationError{
-			Field:   attribute,
-			Message: fmt.Sprintf("%s must contain at least %d of these chars (%s)", attribute, number, characters),
-		})
+	count := 0
+	for _, char := range value {
+		if strings.ContainsRune(characters, char) {
+			count++
+			if count >= number {
+				return
+			}
+		}
 	}
+	*errs = append(*errs, ValidationError{
+		Field:   attribute,
+		Message: fmt.Sprintf("%s must contain at least %d of these chars (%s)", attribute, number, characters),
+	})
 }
 
 func MustNotContainsAny(value string, characters string, attribute string, errs *[]ValidationError) {
