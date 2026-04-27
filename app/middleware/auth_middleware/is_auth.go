@@ -14,6 +14,9 @@ const userIdKey contextKey = "userId"
 func IsAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userId := jwt.Auth(w, r)
+		if userId == "" {
+			return
+		}
 
 		ctx := context.WithValue(r.Context(), userIdKey, userId)
 		r = r.WithContext(ctx)

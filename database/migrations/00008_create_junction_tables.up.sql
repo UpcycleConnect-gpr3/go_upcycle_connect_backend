@@ -1,20 +1,28 @@
 CREATE TABLE IF NOT EXISTS OBJECT_DELIVERY_METHOD (
     object_id INT NOT NULL,
     delivery_method_id INT NOT NULL,
-    PRIMARY KEY (object_id, delivery_method_id)
+    PRIMARY KEY (object_id, delivery_method_id),
+    FOREIGN KEY (object_id) REFERENCES OBJECTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (delivery_method_id) REFERENCES DELIVERY_METHODS(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS OBJECT_PROJECT (
     object_id INT NOT NULL,
     project_id INT NOT NULL,
-    PRIMARY KEY (object_id, project_id)
+    PRIMARY KEY (object_id, project_id),
+    FOREIGN KEY (object_id) REFERENCES OBJECTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES PROJECTS(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS OBJECT_USER (
     object_id INT NOT NULL,
     user_id CHAR(36) NOT NULL,
-    PRIMARY KEY (object_id, user_id)
+    PRIMARY KEY (object_id, user_id),
+    FOREIGN KEY (object_id) REFERENCES OBJECTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS PROJECT_STEP (
     project_id INT NOT NULL,
     step_id INT NOT NULL,
-    PRIMARY KEY (project_id, step_id)
+    PRIMARY KEY (project_id, step_id),
+    FOREIGN KEY (project_id) REFERENCES PROJECTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (step_id) REFERENCES STEPS(id) ON DELETE CASCADE
 );

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+NAME=$1
+MODULE_NAME=$(grep '^module' go.mod | awk '{print $2}')
+RESOURCE_LOWER=$(echo "$NAME" | tr '[:upper:]' '[:lower:]')
+RESOURCE_UPPER=$(echo "$NAME" | sed 's/^./\U&/')
+RESOURCE_UPPER_ALL=$(echo "$NAME" | tr '[:lower:]' '[:upper:]')
+PKG=$(echo "${NAME}_models" | tr '[:upper:]' '[:lower:]')
+
+mkdir -p "app/models/${NAME}_models"
+
+sed "s#{{.PackageName}}#${PKG}#g; s#{{.ResourceName}}#${RESOURCE_UPPER}#g; s#{{.ResourceLower}}#${RESOURCE_LOWER}#g; s#{{.ResourceUpper}}#${RESOURCE_UPPER_ALL}#g; s#{{.ModuleName}}#${MODULE_NAME}#g" \
+	templates/model.go.tpl > "app/models/${NAME}_models/${NAME}.go"
+
+echo "Model generated: app/models/${NAME}_models/${NAME}.go"

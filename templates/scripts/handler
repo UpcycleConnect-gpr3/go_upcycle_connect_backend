@@ -1,0 +1,13 @@
+#!/bin/bash
+
+NAME=$1
+MODULE_NAME=$(grep '^module' go.mod | awk '{print $2}')
+RESOURCE_UPPER=$(echo "$NAME" | sed 's/^./\U&/')
+PKG=$(echo "${NAME}_handlers" | tr '[:upper:]' '[:lower:]')
+
+mkdir -p "app/handlers/${NAME}_handlers"
+
+sed "s#{{.PackageName}}#${PKG}#g; s#{{.ResourceName}}#${RESOURCE_UPPER}#g; s#{{.ModuleName}}#${MODULE_NAME}#g" \
+	templates/handler.go.tpl > "app/handlers/${NAME}_handlers/${NAME}.go"
+
+echo "Handler generated: app/handlers/${NAME}_handlers/${NAME}.go"

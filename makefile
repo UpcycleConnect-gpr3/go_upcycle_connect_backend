@@ -17,3 +17,12 @@ migrate:
 clean:
 	@echo "Nettoyage des fichiers générés..."
 	@rm -rf $(BUILD_DIR)
+
+model:
+	@./templates/scripts/model ${name}
+
+handler:
+	@./templates/scripts/handler ${name}
+
+action:
+	@./templates/scripts/action ${name}

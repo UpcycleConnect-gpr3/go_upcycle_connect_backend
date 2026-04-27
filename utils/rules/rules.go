@@ -3,6 +3,8 @@ package rules
 import (
 	"fmt"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type ValidationError struct {
@@ -94,6 +96,15 @@ func StringStart(value string, prefix string, attribute string, errs *[]Validati
 		*errs = append(*errs, ValidationError{
 			Field:   attribute,
 			Message: fmt.Sprintf("%s must be prefixed by %s", attribute, prefix),
+		})
+	}
+}
+
+func ValidateUUID(value string, attribute string, errs *[]ValidationError) {
+	if _, err := uuid.Parse(value); err != nil {
+		*errs = append(*errs, ValidationError{
+			Field:   attribute,
+			Message: fmt.Sprintf("%s must be a valid UUID", attribute),
 		})
 	}
 }

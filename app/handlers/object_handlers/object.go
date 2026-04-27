@@ -8,6 +8,8 @@ import (
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 func findObject(w http.ResponseWriter, id int) bool {
@@ -224,7 +226,14 @@ func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrUserNotFound, http.StatusBadRequest)
 		return
 	}
-	object_actions.LinkUser(id, userId)
+	if _, err := uuid.Parse(userId); err != nil {
+		response.NewErrorMessage(w, "Invalid user ID format (expected UUID)", http.StatusBadRequest)
+		return
+	}
+	if err := object_actions.LinkUser(id, userId); err != nil {
+		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
+		return
+	}
 	response.NewSuccessMessage(w, response.SuccessLinked)
 }
 
@@ -239,6 +248,13 @@ func UnlinkUserHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrUserNotFound, http.StatusBadRequest)
 		return
 	}
-	object_actions.UnlinkUser(id, userId)
+	if _, err := uuid.Parse(userId); err != nil {
+		response.NewErrorMessage(w, "Invalid user ID format (expected UUID)", http.StatusBadRequest)
+		return
+	}
+	if err := object_actions.UnlinkUser(id, userId); err != nil {
+		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
+		return
+	}
 	response.NewSuccessMessage(w, response.SuccessUnlinked)
 }

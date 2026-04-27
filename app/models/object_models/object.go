@@ -234,22 +234,26 @@ func GetObjectUsers(objectID int) []UserSummary {
 	return result
 }
 
-func LinkUser(objectID int, userID string) {
+func LinkUser(objectID int, userID string) error {
 	_, err := database.UpcycleConnect.Exec(
 		"INSERT IGNORE INTO OBJECT_USER (object_id, user_id) VALUES (?, ?)",
 		objectID, userID,
 	)
 	if err != nil {
 		log.Database("LINK USER TO OBJECT", err)
+		return err
 	}
+	return nil
 }
 
-func UnlinkUser(objectID int, userID string) {
+func UnlinkUser(objectID int, userID string) error {
 	_, err := database.UpcycleConnect.Exec(
 		"DELETE FROM OBJECT_USER WHERE object_id=? AND user_id=?",
 		objectID, userID,
 	)
 	if err != nil {
 		log.Database("UNLINK USER FROM OBJECT", err)
+		return err
 	}
+	return nil
 }

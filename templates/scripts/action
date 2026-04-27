@@ -1,0 +1,17 @@
+#!/bin/bash
+
+NAME=$1
+MODULE_NAME=$(grep '^module' go.mod | awk '{print $2}')
+RESOURCE_LOWER=$(echo "$NAME" | tr '[:upper:]' '[:lower:]')
+RESOURCE_UPPER=$(echo "$NAME" | sed 's/^./\U&/')
+PKG=$(echo "${NAME}_actions" | tr '[:upper:]' '[:lower:]')
+
+mkdir -p "app/actions/${NAME}_actions"
+
+sed "s#{{.PackageName}}#${PKG}#g; s#{{.ResourceName}}#${RESOURCE_UPPER}#g; s#{{.ResourceLower}}#${RESOURCE_LOWER}#g; s#{{.ModuleName}}#${MODULE_NAME}#g" \
+	templates/action_create.go.tpl > "app/actions/${NAME}_actions/create.go"
+
+sed "s#{{.PackageName}}#${PKG}#g; s#{{.ResourceName}}#${RESOURCE_UPPER}#g; s#{{.ResourceLower}}#${RESOURCE_LOWER}#g; s#{{.ModuleName}}#${MODULE_NAME}#g" \
+	templates/action_update.go.tpl > "app/actions/${NAME}_actions/update.go"
+
+echo "Actions generated: app/actions/${NAME}_actions/create.go, app/actions/${NAME}_actions/update.go"
