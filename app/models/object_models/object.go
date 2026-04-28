@@ -21,6 +21,7 @@ type Object struct {
 	Quantity              int     `db:"quantity" json:"quantity"`
 	UserId                string  `db:"user_id" json:"user_id"`
 	Score                 float64 `db:"score" json:"score"`
+	IsAdValidated         bool    `db:"is_ad_validated" json:"is_ad_validated"`
 	CreatedAt             string  `db:"created_at" json:"created_at"`
 	UpdatedAt             string  `db:"updated_at" json:"updated_at"`
 }
@@ -35,6 +36,7 @@ type CreateObjectDTO struct {
 	Quantity              int
 	UserId                string
 	Score                 float64
+	IsAdValidated         bool
 }
 
 type UpdateObjectDTO struct {
@@ -46,6 +48,7 @@ type UpdateObjectDTO struct {
 	Quantity              int
 	UserId                string
 	Score                 float64
+	IsAdValidated         bool
 }
 
 type DeliveryMethodSummary struct {
@@ -83,8 +86,8 @@ func CreateObject(dto CreateObjectDTO) *Object {
 		objectId = uuid.New().String()
 	}
 	_, err := database.UpcycleConnect.Exec(
-		"INSERT INTO "+TABLE+" (id, name, description, price, image_path, column_for_calc_the_score, quantity, user_id, score, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
-		objectId, dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score,
+		"INSERT INTO "+TABLE+" (id, name, description, price, image_path, column_for_calc_the_score, quantity, user_id, score, is_ad_validated, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+		objectId, dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score, dto.IsAdValidated,
 	)
 	if err != nil {
 		log.Database(action, err)
@@ -96,8 +99,8 @@ func CreateObject(dto CreateObjectDTO) *Object {
 func UpdateObject(id string, dto UpdateObjectDTO) *Object {
 	action := fmt.Sprintf("UPDATE %s WHERE ID: %s", TABLE, id)
 	_, err := database.UpcycleConnect.Exec(
-		"UPDATE "+TABLE+" SET name=?, description=?, price=?, image_path=?, column_for_calc_the_score=?, quantity=?, user_id=?, score=? WHERE id=?",
-		dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score, id,
+		"UPDATE "+TABLE+" SET name=?, description=?, price=?, image_path=?, column_for_calc_the_score=?, quantity=?, user_id=?, score=?, is_ad_validated=? WHERE id=?",
+		dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score, dto.IsAdValidated, id,
 	)
 	if err != nil {
 		log.Database(action, err)

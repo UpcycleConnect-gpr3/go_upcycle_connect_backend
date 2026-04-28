@@ -1,0 +1,1 @@
+ALTER TABLE OBJECTS DROP COLUMN is_ad_validated;
