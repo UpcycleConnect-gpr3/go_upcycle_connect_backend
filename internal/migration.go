@@ -44,7 +44,7 @@ func Migrate(db *sqlx.DB) {
 }
 
 func CreateTableMigrations(db *sqlx.DB) {
-	systemTable, errorToLoadMigrationFile := readMigrationFile("system/migration_table.sql_builder")
+	systemTable, errorToLoadMigrationFile := readMigrationFile("system/migration_table.sql")
 
 	if errorToLoadMigrationFile != nil {
 		log.Fatal(errorToLoadMigrationFile)
@@ -175,7 +175,7 @@ func getNotExistingMigrations(db *sqlx.DB) ([]string, error) {
 
 	var notExistingMigrations []string
 	for _, fileName := range fileNames {
-		if strings.HasSuffix(fileName, ".up.sql_builder") && !existingMigrationsMap[fileName] {
+		if strings.HasSuffix(fileName, ".up.sql") && !existingMigrationsMap[fileName] {
 			notExistingMigrations = append(notExistingMigrations, fileName)
 		}
 	}
