@@ -5,12 +5,7 @@ import (
 	"go-upcycle_connect-backend/utils/rules"
 )
 
-type UpdateProjectDTO struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-func UpdateProject(id int, dto UpdateProjectDTO) ([]rules.ValidationError, *project_models.Project) {
+func UpdateProject(id int, dto project_models.UpdateProjectDTO) ([]rules.ValidationError, *project_models.Project) {
 	var errs []rules.ValidationError
 
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
@@ -20,10 +15,7 @@ func UpdateProject(id int, dto UpdateProjectDTO) ([]rules.ValidationError, *proj
 		return errs, nil
 	}
 
-	project := project_models.UpdateProject(id, project_models.UpdateProjectDTO{
-		Name:        dto.Name,
-		Description: dto.Description,
-	})
+	project := project_models.UpdateProject(id, dto)
 
 	return nil, project
 }

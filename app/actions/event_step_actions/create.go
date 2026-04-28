@@ -5,27 +5,17 @@ import (
 	"go-upcycle_connect-backend/utils/rules"
 )
 
-type CreateEventStepDTO struct {
-	EventId int    `json:"event_id"`
-	Title   string `json:"title"`
-	Order   int    `json:"order"`
-}
-
-func CreateEventStep(dto CreateEventStepDTO) ([]rules.ValidationError, *event_step_models.EventStep) {
+func CreateEventStep(dto event_step_models.CreateEventStepDTO) ([]rules.ValidationError, *event_step_models.EventStep) {
 	var errs []rules.ValidationError
 
-	rules.StringMinLength(dto.Title, 1, "title", &errs)
-	rules.StringMaxLength(dto.Title, 255, "title", &errs)
+	rules.StringMinLength(dto.Name, 1, "name", &errs)
+	rules.StringMaxLength(dto.Name, 255, "name", &errs)
 
 	if len(errs) > 0 {
 		return errs, nil
 	}
 
-	eventStep := event_step_models.CreateEventStep(event_step_models.CreateEventStepDTO{
-		EventId: dto.EventId,
-		Title:   dto.Title,
-		Order:   dto.Order,
-	})
+	eventStep := event_step_models.CreateEventStep(dto)
 
 	return nil, eventStep
 }

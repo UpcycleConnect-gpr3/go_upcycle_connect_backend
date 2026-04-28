@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func findStep(w http.ResponseWriter, id int) bool {
+func findStep(w http.ResponseWriter, id string) bool {
 	var s step_models.Step
 	if err := s.Get([]string{"id"}, "id", id); err != nil {
 		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
@@ -19,11 +19,11 @@ func findStep(w http.ResponseWriter, id int) bool {
 	return true
 }
 
-func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
+func IndexStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var s step_models.Step
 	var steps []step_models.Step
-	columns := []string{"id", "title", "description", "`order`", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "image_path", "user_id", "project_id", "scheduled_at", "created_at", "updated_at"}
 	if err := s.All(columns, &steps); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -31,14 +31,15 @@ func GetStepsHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, steps)
 }
 
-func GetStepHandler(w http.ResponseWriter, r *http.Request) {
+func ShowStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
 		return
 	}
 	var s step_models.Step
-	columns := []string{"id", "title", "description", "`order`", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "image_path", "user_id", "project_id", "scheduled_at", "created_at", "updated_at"}
 	if err := s.Get(columns, "id", id); err != nil {
 		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
 		return
@@ -46,9 +47,9 @@ func GetStepHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, s)
 }
 
-func CreateStepHandler(w http.ResponseWriter, r *http.Request) {
+func StoreStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	var dto step_actions.CreateStepDTO
+	var dto step_models.CreateStepDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -62,19 +63,20 @@ func CreateStepHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, map[string]int{"id": step.Id})
+	response.NewSuccessData(w, map[string]string{"id": step.Id})
 }
 
 func UpdateStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
 		return
 	}
 	if !findStep(w, id) {
 		return
 	}
-	var dto step_actions.UpdateStepDTO
+	var dto step_models.UpdateStepDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -88,13 +90,14 @@ func UpdateStepHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, map[string]int{"id": updated.Id})
+	response.NewSuccessData(w, map[string]string{"id": updated.Id})
 }
 
 func DeleteStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
 		return
 	}
 	if !findStep(w, id) {

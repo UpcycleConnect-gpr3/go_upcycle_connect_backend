@@ -5,29 +5,40 @@ import (
 	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+
+	"github.com/google/uuid"
 )
 
 const TABLE = "STEPS"
 
 type Step struct {
-	Id          int    `db:"id" json:"id"`
-	Title       string `db:"title" json:"title"`
+	Id          string `db:"id" json:"id"`
+	Name        string `db:"name" json:"name"`
 	Description string `db:"description" json:"description"`
-	Order       int    `db:"order" json:"order"`
+	ImagePath   string `db:"image_path" json:"image_path"`
+	UserId      string `db:"user_id" json:"user_id"`
+	ProjectId   int    `db:"project_id" json:"project_id"`
+	ScheduledAt string `db:"scheduled_at" json:"scheduled_at"`
 	CreatedAt   string `db:"created_at" json:"created_at"`
 	UpdatedAt   string `db:"updated_at" json:"updated_at"`
 }
 
 type CreateStepDTO struct {
-	Title       string
+	Name        string
 	Description string
-	Order       int
+	ImagePath   string
+	UserId      string
+	ProjectId   int
+	ScheduledAt string
 }
 
 type UpdateStepDTO struct {
-	Title       string
+	Name        string
 	Description string
-	Order       int
+	ImagePath   string
+	UserId      string
+	ProjectId   int
+	ScheduledAt string
 }
 
 func (step *Step) Get(columns []string, by string, value any) error {
@@ -39,24 +50,24 @@ func (step *Step) All(columns []string, dest *[]Step) error {
 }
 
 func CreateStep(dto CreateStepDTO) *Step {
-	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Title)
-	res, err := database.UpcycleConnect.Exec(
-		"INSERT INTO "+TABLE+" (title, description, `order`) VALUES (?, ?, ?)",
-		dto.Title, dto.Description, dto.Order,
+	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Name)
+	stepId := uuid.New().String()
+	_, err := database.UpcycleConnect.Exec(
+		"INSERT INTO "+TABLE+" (id, name, description, image_path, user_id, project_id, scheduled_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+		stepId, dto.Name, dto.Description, dto.ImagePath, dto.UserId, dto.ProjectId, dto.ScheduledAt,
 	)
 	if err != nil {
 		log.Database(action, err)
 		return nil
 	}
-	id, _ := res.LastInsertId()
-	return &Step{Id: int(id)}
+	return &Step{Id: stepId}
 }
 
-func UpdateStep(id int, dto UpdateStepDTO) *Step {
-	action := fmt.Sprintf("UPDATE %s WHERE ID: %d", TABLE, id)
+func UpdateStep(id string, dto UpdateStepDTO) *Step {
+	action := fmt.Sprintf("UPDATE %s WHERE ID: %s", TABLE, id)
 	_, err := database.UpcycleConnect.Exec(
-		"UPDATE "+TABLE+" SET title=?, description=?, `order`=? WHERE id=?",
-		dto.Title, dto.Description, dto.Order, id,
+		"UPDATE "+TABLE+" SET name=?, description=?, image_path=?, user_id=?, project_id=?, scheduled_at=?, updated_at=NOW() WHERE id=?",
+		dto.Name, dto.Description, dto.ImagePath, dto.UserId, dto.ProjectId, dto.ScheduledAt, id,
 	)
 	if err != nil {
 		log.Database(action, err)
@@ -65,8 +76,8 @@ func UpdateStep(id int, dto UpdateStepDTO) *Step {
 	return &Step{Id: id}
 }
 
-func DeleteStep(id int) {
-	action := fmt.Sprintf("DELETE FROM %s WHERE ID: %d", TABLE, id)
+func DeleteStep(id string) {
+	action := fmt.Sprintf("DELETE FROM %s WHERE ID: %s", TABLE, id)
 	_, err := database.UpcycleConnect.Exec("DELETE FROM "+TABLE+" WHERE id=?", id)
 	if err != nil {
 		log.Database(action, err)

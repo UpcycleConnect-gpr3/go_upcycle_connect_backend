@@ -5,12 +5,7 @@ import (
 	"go-upcycle_connect-backend/utils/rules"
 )
 
-type CreateProjectDTO struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-func CreateProject(dto CreateProjectDTO) ([]rules.ValidationError, *project_models.Project) {
+func CreateProject(dto project_models.CreateProjectDTO) ([]rules.ValidationError, *project_models.Project) {
 	var errs []rules.ValidationError
 
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
@@ -20,10 +15,7 @@ func CreateProject(dto CreateProjectDTO) ([]rules.ValidationError, *project_mode
 		return errs, nil
 	}
 
-	project := project_models.CreateProject(project_models.CreateProjectDTO{
-		Name:        dto.Name,
-		Description: dto.Description,
-	})
+	project := project_models.CreateProject(dto)
 
 	return nil, project
 }

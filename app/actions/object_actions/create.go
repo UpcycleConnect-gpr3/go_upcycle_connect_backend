@@ -5,14 +5,7 @@ import (
 	"go-upcycle_connect-backend/utils/rules"
 )
 
-type CreateObjectDTO struct {
-	Name        string `json:"name"`
-	Material    string `json:"material"`
-	Condition   string `json:"condition"`
-	Description string `json:"description"`
-}
-
-func CreateObject(dto CreateObjectDTO) ([]rules.ValidationError, *object_models.Object) {
+func CreateObject(dto object_models.CreateObjectDTO) ([]rules.ValidationError, *object_models.Object) {
 	var errs []rules.ValidationError
 
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
@@ -22,12 +15,7 @@ func CreateObject(dto CreateObjectDTO) ([]rules.ValidationError, *object_models.
 		return errs, nil
 	}
 
-	obj := object_models.CreateObject(object_models.CreateObjectDTO{
-		Name:        dto.Name,
-		Material:    dto.Material,
-		Condition:   dto.Condition,
-		Description: dto.Description,
-	})
+	obj := object_models.CreateObject(dto)
 
 	return nil, obj
 }

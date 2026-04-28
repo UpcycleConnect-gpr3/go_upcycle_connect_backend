@@ -10,23 +10,29 @@ import (
 const TABLE = "EVENT_STEPS"
 
 type EventStep struct {
-	Id        int    `db:"id" json:"id"`
-	EventId   int    `db:"event_id" json:"event_id"`
-	Title     string `db:"title" json:"title"`
-	Order     int    `db:"order" json:"order"`
-	CreatedAt string `db:"created_at" json:"created_at"`
-	UpdatedAt string `db:"updated_at" json:"updated_at"`
+	Id          int    `db:"id" json:"id"`
+	EventId     int    `db:"event_id" json:"event_id"`
+	Name        string `db:"name" json:"name"`
+	Description string `db:"description" json:"description"`
+	ImagePath   string `db:"image_path" json:"image_path"`
+	ScheduledAt string `db:"scheduled_at" json:"scheduled_at"`
+	CreatedAt   string `db:"created_at" json:"created_at"`
+	UpdatedAt   string `db:"updated_at" json:"updated_at"`
 }
 
 type CreateEventStepDTO struct {
-	EventId int
-	Title   string
-	Order   int
+	EventId     int
+	Name        string
+	Description string
+	ImagePath   string
+	ScheduledAt string
 }
 
 type UpdateEventStepDTO struct {
-	Title string
-	Order int
+	Name        string
+	Description string
+	ImagePath   string
+	ScheduledAt string
 }
 
 func (eventStep *EventStep) Get(columns []string, by string, value any) error {
@@ -38,10 +44,10 @@ func (eventStep *EventStep) All(columns []string, dest *[]EventStep) error {
 }
 
 func CreateEventStep(dto CreateEventStepDTO) *EventStep {
-	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Title)
+	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Name)
 	res, err := database.UpcycleConnect.Exec(
-		"INSERT INTO "+TABLE+" (event_id, title, `order`) VALUES (?, ?, ?)",
-		dto.EventId, dto.Title, dto.Order,
+		"INSERT INTO "+TABLE+" (event_id, name, description, image_path, scheduled_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())",
+		dto.EventId, dto.Name, dto.Description, dto.ImagePath, dto.ScheduledAt,
 	)
 	if err != nil {
 		log.Database(action, err)
@@ -54,8 +60,8 @@ func CreateEventStep(dto CreateEventStepDTO) *EventStep {
 func UpdateEventStep(id int, dto UpdateEventStepDTO) *EventStep {
 	action := fmt.Sprintf("UPDATE %s WHERE ID: %d", TABLE, id)
 	_, err := database.UpcycleConnect.Exec(
-		"UPDATE "+TABLE+" SET title=?, `order`=? WHERE id=?",
-		dto.Title, dto.Order, id,
+		"UPDATE "+TABLE+" SET name=?, description=?, image_path=?, scheduled_at=?, updated_at=NOW() WHERE id=?",
+		dto.Name, dto.Description, dto.ImagePath, dto.ScheduledAt, id,
 	)
 	if err != nil {
 		log.Database(action, err)

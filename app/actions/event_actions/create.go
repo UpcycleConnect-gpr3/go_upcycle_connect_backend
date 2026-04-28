@@ -5,27 +5,17 @@ import (
 	"go-upcycle_connect-backend/utils/rules"
 )
 
-type CreateEventDTO struct {
-	Title    string `json:"title"`
-	Date     string `json:"date"`
-	Location string `json:"location"`
-}
-
-func CreateEvent(dto CreateEventDTO) ([]rules.ValidationError, *event_models.Event) {
+func CreateEvent(dto event_models.CreateEventDTO) ([]rules.ValidationError, *event_models.Event) {
 	var errs []rules.ValidationError
 
-	rules.StringMinLength(dto.Title, 1, "title", &errs)
-	rules.StringMaxLength(dto.Title, 255, "title", &errs)
+	rules.StringMinLength(dto.Name, 1, "name", &errs)
+	rules.StringMaxLength(dto.Name, 255, "name", &errs)
 
 	if len(errs) > 0 {
 		return errs, nil
 	}
 
-	event := event_models.CreateEvent(event_models.CreateEventDTO{
-		Title:    dto.Title,
-		Date:     dto.Date,
-		Location: dto.Location,
-	})
+	event := event_models.CreateEvent(dto)
 
 	return nil, event
 }

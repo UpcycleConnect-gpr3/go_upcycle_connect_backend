@@ -5,21 +5,16 @@ import (
 	"go-upcycle_connect-backend/utils/rules"
 )
 
-type CreateProjectStepDTO struct {
-	Title string `json:"title"`
-	Order int    `json:"order"`
-}
-
-func CreateProjectStep(projectID int, dto CreateProjectStepDTO) ([]rules.ValidationError, *project_models.StepSummary) {
+func CreateProjectStep(projectID int, name, description, imagePath string, scheduledAt string) ([]rules.ValidationError, *project_models.StepSummary) {
 	var errs []rules.ValidationError
 
-	rules.StringMinLength(dto.Title, 1, "title", &errs)
-	rules.StringMaxLength(dto.Title, 255, "title", &errs)
+	rules.StringMinLength(name, 1, "name", &errs)
+	rules.StringMaxLength(name, 255, "name", &errs)
 
 	if len(errs) > 0 {
 		return errs, nil
 	}
 
-	stepSummary := project_models.CreateProjectStep(projectID, dto.Title, dto.Order)
+	stepSummary := project_models.CreateProjectStep(projectID, name, description, imagePath, scheduledAt)
 	return nil, stepSummary
 }

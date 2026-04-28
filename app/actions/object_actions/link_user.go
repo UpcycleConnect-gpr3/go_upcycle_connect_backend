@@ -5,7 +5,7 @@ import (
 	"go-upcycle_connect-backend/app/models/object_models"
 )
 
-func LinkUser(objectID int, userID string) error {
+func LinkUser(objectID string, userID string) error {
 	if _, err := uuid.Parse(userID); err != nil {
 		return err
 	}

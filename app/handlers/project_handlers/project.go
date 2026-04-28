@@ -19,11 +19,11 @@ func findProject(w http.ResponseWriter, id int) bool {
 	return true
 }
 
-func GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
+func IndexProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var p project_models.Project
 	var projects []project_models.Project
-	columns := []string{"id", "name", "description", "score", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "image_path", "user_id", "created_at", "updated_at"}
 	if err := p.All(columns, &projects); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -31,14 +31,14 @@ func GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, projects)
 }
 
-func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
+func ShowProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	id := request.Request(r, "id").ConvertToInt(w)
 	if id == -1 {
 		return
 	}
 	var p project_models.Project
-	columns := []string{"id", "name", "description", "score", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "image_path", "user_id", "created_at", "updated_at"}
 	if err := p.Get(columns, "id", id); err != nil {
 		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
 		return
@@ -46,9 +46,9 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, p)
 }
 
-func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
+func StoreProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	var dto project_actions.CreateProjectDTO
+	var dto project_models.CreateProjectDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -74,7 +74,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if !findProject(w, id) {
 		return
 	}
-	var dto project_actions.UpdateProjectDTO
+	var dto project_models.UpdateProjectDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -104,20 +104,6 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessMessage(w, "Project deleted")
 }
 
-func GetProjectScoreHandler(w http.ResponseWriter, r *http.Request) {
-	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
-		return
-	}
-	score := project_models.GetProjectScore(id)
-	if score == nil {
-		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
-		return
-	}
-	response.NewSuccessData(w, score)
-}
-
 func GetProjectObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	id := request.Request(r, "id").ConvertToInt(w)
@@ -137,12 +123,32 @@ func LinkObjectHandler(w http.ResponseWriter, r *http.Request) {
 	if id == -1 {
 		return
 	}
-	objectId := request.Request(r, "objectId").ConvertToInt(w)
-	if objectId == -1 {
+	objectId := request.Request(r, "objectId").Value()
+	if objectId == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
 		return
 	}
-	project_actions.LinkObject(id, objectId)
+	userId := request.Request(r, "userId").Value()
+	if userId == "" {
+		userId = "" // Allow empty userId for now
+	}
+	project_actions.LinkObject(id, objectId, userId)
 	response.NewSuccessMessage(w, response.SuccessLinked)
+}
+
+func UnlinkObjectHandler(w http.ResponseWriter, r *http.Request) {
+	log.Api(r)
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
+		return
+	}
+	objectId := request.Request(r, "objectId").Value()
+	if objectId == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusBadRequest)
+		return
+	}
+	project_models.UnlinkObject(id, objectId)
+	response.NewSuccessMessage(w, response.SuccessUnlinked)
 }
 
 func GetProjectStepsHandler(w http.ResponseWriter, r *http.Request) {
@@ -167,12 +173,17 @@ func CreateProjectStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !findProject(w, id) {
 		return
 	}
-	var dto project_actions.CreateProjectStepDTO
+	var dto struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		ImagePath   string `json:"image_path"`
+		ScheduledAt string `json:"scheduled_at"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
-	validationErrors, projectStep := project_actions.CreateProjectStep(id, dto)
+	validationErrors, projectStep := project_actions.CreateProjectStep(id, dto.Name, dto.Description, dto.ImagePath, dto.ScheduledAt)
 	if len(validationErrors) > 0 {
 		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
 		return
@@ -181,5 +192,5 @@ func CreateProjectStepHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, map[string]int{"id": projectStep.Id})
+	response.NewSuccessData(w, projectStep)
 }

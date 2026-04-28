@@ -4,6 +4,6 @@ import (
 	"go-upcycle_connect-backend/app/models/object_models"
 )
 
-func UnlinkProject(objectID, projectID int) {
+func UnlinkProject(objectID string, projectID int) {
 	object_models.UnlinkProject(objectID, projectID)
 }

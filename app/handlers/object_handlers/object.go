@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func findObject(w http.ResponseWriter, id int) bool {
+func findObject(w http.ResponseWriter, id string) bool {
 	var obj object_models.Object
 	if err := obj.Get([]string{"id"}, "id", id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
@@ -21,11 +21,11 @@ func findObject(w http.ResponseWriter, id int) bool {
 	return true
 }
 
-func GetObjectsHandler(w http.ResponseWriter, r *http.Request) {
+func IndexObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var obj object_models.Object
 	var objects []object_models.Object
-	columns := []string{"id", "name", "material", "`condition`", "description", "upcycling_score", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "quantity", "user_id", "score", "created_at", "updated_at"}
 	if err := obj.All(columns, &objects); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -33,14 +33,15 @@ func GetObjectsHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, objects)
 }
 
-func GetObjectHandler(w http.ResponseWriter, r *http.Request) {
+func ShowObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	var obj object_models.Object
-	columns := []string{"id", "name", "material", "`condition`", "description", "upcycling_score", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "quantity", "user_id", "score", "created_at", "updated_at"}
 	if err := obj.Get(columns, "id", id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
@@ -48,9 +49,9 @@ func GetObjectHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, obj)
 }
 
-func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
+func StoreObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	var dto object_actions.CreateObjectDTO
+	var dto object_models.CreateObjectDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -64,19 +65,20 @@ func CreateObjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, map[string]int{"id": obj.Id})
+	response.NewSuccessData(w, map[string]string{"id": obj.Id})
 }
 
 func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	if !findObject(w, id) {
 		return
 	}
-	var dto object_actions.UpdateObjectDTO
+	var dto object_models.UpdateObjectDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -90,13 +92,14 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, map[string]int{"id": updated.Id})
+	response.NewSuccessData(w, map[string]string{"id": updated.Id})
 }
 
 func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	if !findObject(w, id) {
@@ -108,8 +111,9 @@ func DeleteObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	score := object_models.GetObjectScore(id)
@@ -122,8 +126,9 @@ func GetObjectScoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	if !findObject(w, id) {
@@ -135,8 +140,9 @@ func GetObjectDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	dmId := request.Request(r, "deliveryMethodId").ConvertToInt(w)
@@ -149,8 +155,9 @@ func LinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	dmId := request.Request(r, "deliveryMethodId").ConvertToInt(w)
@@ -163,8 +170,9 @@ func UnlinkDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	if !findObject(w, id) {
@@ -176,8 +184,9 @@ func GetObjectProjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	projectId := request.Request(r, "projectId").ConvertToInt(w)
@@ -190,8 +199,9 @@ func LinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	projectId := request.Request(r, "projectId").ConvertToInt(w)
@@ -204,8 +214,9 @@ func UnlinkProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetObjectUsersHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	if !findObject(w, id) {
@@ -217,8 +228,9 @@ func GetObjectUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	userId := request.Request(r, "userId").Value()
@@ -239,8 +251,9 @@ func LinkUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnlinkUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	id := request.Request(r, "id").ConvertToInt(w)
-	if id == -1 {
+	id := request.Request(r, "id").Value()
+	if id == "" {
+		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}
 	userId := request.Request(r, "userId").Value()

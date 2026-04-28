@@ -4,6 +4,6 @@ import (
 	"go-upcycle_connect-backend/app/models/object_models"
 )
 
-func UnlinkDeliveryMethod(objectID, deliveryMethodID int) {
+func UnlinkDeliveryMethod(objectID string, deliveryMethodID int) {
 	object_models.UnlinkDeliveryMethod(objectID, deliveryMethodID)
 }

@@ -5,12 +5,7 @@ import (
 	"go-upcycle_connect-backend/utils/rules"
 )
 
-type UpdateDeliveryMethodDTO struct {
-	Name string  `json:"name"`
-	Cost float64 `json:"cost"`
-}
-
-func UpdateDeliveryMethod(id int, dto UpdateDeliveryMethodDTO) ([]rules.ValidationError, *delivery_method_models.DeliveryMethod) {
+func UpdateDeliveryMethod(id int, dto delivery_method_models.UpdateDeliveryMethodDTO) ([]rules.ValidationError, *delivery_method_models.DeliveryMethod) {
 	var errs []rules.ValidationError
 
 	rules.StringMinLength(dto.Name, 1, "name", &errs)
@@ -20,10 +15,7 @@ func UpdateDeliveryMethod(id int, dto UpdateDeliveryMethodDTO) ([]rules.Validati
 		return errs, nil
 	}
 
-	deliveryMethod := delivery_method_models.UpdateDeliveryMethod(id, delivery_method_models.UpdateDeliveryMethodDTO{
-		Name: dto.Name,
-		Cost: dto.Cost,
-	})
+	deliveryMethod := delivery_method_models.UpdateDeliveryMethod(id, dto)
 
 	return nil, deliveryMethod
 }

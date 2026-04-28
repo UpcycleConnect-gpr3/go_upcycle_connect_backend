@@ -19,11 +19,11 @@ func findEvent(w http.ResponseWriter, id int) bool {
 	return true
 }
 
-func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
+func IndexEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var e event_models.Event
 	var events []event_models.Event
-	columns := []string{"id", "title", "date", "location", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "image_path", "started_at", "finished_at", "location", "delivery_method", "created_by_user_id", "created_at", "updated_at"}
 	if err := e.All(columns, &events); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -31,7 +31,7 @@ func GetEventsHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, events)
 }
 
-func GetEventHandler(w http.ResponseWriter, r *http.Request) {
+func ShowEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	id := request.Request(r, "id").ConvertToInt(w)
 	if id == -1 {
@@ -46,9 +46,9 @@ func GetEventHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, e)
 }
 
-func CreateEventHandler(w http.ResponseWriter, r *http.Request) {
+func StoreEventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	var dto event_actions.CreateEventDTO
+	var dto event_models.CreateEventDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -74,7 +74,7 @@ func UpdateEventHandler(w http.ResponseWriter, r *http.Request) {
 	if !findEvent(w, id) {
 		return
 	}
-	var dto event_actions.UpdateEventDTO
+	var dto event_models.UpdateEventDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -126,12 +126,17 @@ func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !findEvent(w, id) {
 		return
 	}
-	var dto event_actions.CreateEventStepDTO
+	var dto struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		ImagePath   string `json:"image_path"`
+		ScheduledAt string `json:"scheduled_at"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
-	validationErrors, eventStep := event_actions.CreateEventStep(id, dto)
+	validationErrors, eventStep := event_actions.CreateEventStep(id, dto.Name, dto.Description, dto.ImagePath, dto.ScheduledAt)
 	if len(validationErrors) > 0 {
 		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
 		return
@@ -140,5 +145,5 @@ func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusInternalServerError)
 		return
 	}
-	response.NewSuccessData(w, map[string]int{"id": eventStep.Id})
+	response.NewSuccessData(w, eventStep)
 }

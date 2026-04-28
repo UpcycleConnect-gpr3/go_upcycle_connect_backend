@@ -5,39 +5,52 @@ import (
 	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+
+	"github.com/google/uuid"
 )
 
 const TABLE = "OBJECTS"
 
 type Object struct {
-	Id             int    `db:"id" json:"id"`
-	Name           string `db:"name" json:"name"`
-	Material       string `db:"material" json:"material"`
-	Condition      string `db:"condition" json:"condition"`
-	Description    string `db:"description" json:"description"`
-	UpcyclingScore int    `db:"upcycling_score" json:"upcycling_score"`
-	CreatedAt      string `db:"created_at" json:"created_at"`
-	UpdatedAt      string `db:"updated_at" json:"updated_at"`
+	Id                    string  `db:"id" json:"id"`
+	Name                  string  `db:"name" json:"name"`
+	Description           string  `db:"description" json:"description"`
+	Price                 float64 `db:"price" json:"price"`
+	ImagePath             string  `db:"image_path" json:"image_path"`
+	ColumnForCalcTheScore string  `db:"column_for_calc_the_score" json:"column_for_calc_the_score"`
+	Quantity              int     `db:"quantity" json:"quantity"`
+	UserId                string  `db:"user_id" json:"user_id"`
+	Score                 float64 `db:"score" json:"score"`
+	CreatedAt             string  `db:"created_at" json:"created_at"`
+	UpdatedAt             string  `db:"updated_at" json:"updated_at"`
 }
 
 type CreateObjectDTO struct {
-	Name        string
-	Material    string
-	Condition   string
-	Description string
+	Id                    string
+	Name                  string
+	Description           string
+	Price                 float64
+	ImagePath             string
+	ColumnForCalcTheScore string
+	Quantity              int
+	UserId                string
+	Score                 float64
 }
 
 type UpdateObjectDTO struct {
-	Name        string
-	Material    string
-	Condition   string
-	Description string
+	Name                  string
+	Description           string
+	Price                 float64
+	ImagePath             string
+	ColumnForCalcTheScore string
+	Quantity              int
+	UserId                string
+	Score                 float64
 }
 
 type DeliveryMethodSummary struct {
-	Id   int     `json:"id"`
-	Name string  `json:"name"`
-	Cost float64 `json:"cost"`
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type ProjectSummary struct {
@@ -50,16 +63,9 @@ type UserSummary struct {
 	Username string `json:"username"`
 }
 
-type ScoreBreakdown struct {
-	Material    int `json:"material"`
-	Condition   int `json:"condition"`
-	Reusability int `json:"reusability"`
-}
-
 type ScoreResponse struct {
-	ObjectId       int            `json:"object_id"`
-	UpcyclingScore int            `json:"upcycling_score"`
-	Breakdown      ScoreBreakdown `json:"breakdown"`
+	ObjectId string  `json:"object_id"`
+	Score    float64 `json:"score"`
 }
 
 func (object *Object) Get(columns []string, by string, value any) error {
@@ -72,31 +78,26 @@ func (object *Object) All(columns []string, dest *[]Object) error {
 
 func CreateObject(dto CreateObjectDTO) *Object {
 	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Name)
-	score := 0
-	if dto.Material != "" {
-		score += 30
+	objectId := dto.Id
+	if objectId == "" {
+		objectId = uuid.New().String()
 	}
-	if dto.Condition == "good" || dto.Condition == "excellent" {
-		score += 25
-	}
-	score += 23 // reusability base
-	res, err := database.UpcycleConnect.Exec(
-		"INSERT INTO "+TABLE+" (name, material, `condition`, description, upcycling_score) VALUES (?, ?, ?, ?, ?)",
-		dto.Name, dto.Material, dto.Condition, dto.Description, score,
+	_, err := database.UpcycleConnect.Exec(
+		"INSERT INTO "+TABLE+" (id, name, description, price, image_path, column_for_calc_the_score, quantity, user_id, score, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+		objectId, dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score,
 	)
 	if err != nil {
 		log.Database(action, err)
 		return nil
 	}
-	id, _ := res.LastInsertId()
-	return &Object{Id: int(id)}
+	return &Object{Id: objectId}
 }
 
-func UpdateObject(id int, dto UpdateObjectDTO) *Object {
-	action := fmt.Sprintf("UPDATE %s WHERE ID: %d", TABLE, id)
+func UpdateObject(id string, dto UpdateObjectDTO) *Object {
+	action := fmt.Sprintf("UPDATE %s WHERE ID: %s", TABLE, id)
 	_, err := database.UpcycleConnect.Exec(
-		"UPDATE "+TABLE+" SET name=?, material=?, `condition`=?, description=? WHERE id=?",
-		dto.Name, dto.Material, dto.Condition, dto.Description, id,
+		"UPDATE "+TABLE+" SET name=?, description=?, price=?, image_path=?, column_for_calc_the_score=?, quantity=?, user_id=?, score=? WHERE id=?",
+		dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score, id,
 	)
 	if err != nil {
 		log.Database(action, err)
@@ -105,42 +106,29 @@ func UpdateObject(id int, dto UpdateObjectDTO) *Object {
 	return &Object{Id: id}
 }
 
-func DeleteObject(id int) {
-	action := fmt.Sprintf("DELETE FROM %s WHERE ID: %d", TABLE, id)
+func DeleteObject(id string) {
+	action := fmt.Sprintf("DELETE FROM %s WHERE ID: %s", TABLE, id)
 	_, err := database.UpcycleConnect.Exec("DELETE FROM "+TABLE+" WHERE id=?", id)
 	if err != nil {
 		log.Database(action, err)
 	}
 }
 
-func GetObjectScore(id int) *ScoreResponse {
+func GetObjectScore(id string) *ScoreResponse {
 	var o Object
-	if err := o.Get([]string{"id", "material", "`condition`", "upcycling_score"}, "id", id); err != nil {
+	if err := o.Get([]string{"id", "score"}, "id", id); err != nil {
 		return nil
 	}
-	matScore := 0
-	condScore := 0
-	if o.Material != "" {
-		matScore = 30
-	}
-	if o.Condition == "good" || o.Condition == "excellent" {
-		condScore = 25
-	}
-	reuse := o.UpcyclingScore - matScore - condScore
-	if reuse < 0 {
-		reuse = 0
-	}
 	return &ScoreResponse{
-		ObjectId:       o.Id,
-		UpcyclingScore: o.UpcyclingScore,
-		Breakdown:      ScoreBreakdown{Material: matScore, Condition: condScore, Reusability: reuse},
+		ObjectId: o.Id,
+		Score:    o.Score,
 	}
 }
 
-func GetObjectDeliveryMethods(objectID int) []DeliveryMethodSummary {
+func GetObjectDeliveryMethods(objectID string) []DeliveryMethodSummary {
 	result := []DeliveryMethodSummary{}
 	rows, err := database.UpcycleConnect.Query(
-		"SELECT dm.id, dm.name, dm.cost FROM DELIVERY_METHODS dm JOIN OBJECT_DELIVERY_METHOD odm ON dm.id=odm.delivery_method_id WHERE odm.object_id=?",
+		"SELECT dm.id, dm.name FROM DELIVERY_METHODS dm JOIN OBJECT_DELIVERY_METHOD odm ON dm.id=odm.delivery_method_id WHERE odm.object_id=?",
 		objectID,
 	)
 	if err != nil {
@@ -150,13 +138,13 @@ func GetObjectDeliveryMethods(objectID int) []DeliveryMethodSummary {
 	defer rows.Close()
 	for rows.Next() {
 		d := DeliveryMethodSummary{}
-		_ = rows.Scan(&d.Id, &d.Name, &d.Cost)
+		_ = rows.Scan(&d.Id, &d.Name)
 		result = append(result, d)
 	}
 	return result
 }
 
-func LinkDeliveryMethod(objectID, deliveryMethodID int) {
+func LinkDeliveryMethod(objectID string, deliveryMethodID int) {
 	_, err := database.UpcycleConnect.Exec(
 		"INSERT IGNORE INTO OBJECT_DELIVERY_METHOD (object_id, delivery_method_id) VALUES (?, ?)",
 		objectID, deliveryMethodID,
@@ -166,7 +154,7 @@ func LinkDeliveryMethod(objectID, deliveryMethodID int) {
 	}
 }
 
-func UnlinkDeliveryMethod(objectID, deliveryMethodID int) {
+func UnlinkDeliveryMethod(objectID string, deliveryMethodID int) {
 	_, err := database.UpcycleConnect.Exec(
 		"DELETE FROM OBJECT_DELIVERY_METHOD WHERE object_id=? AND delivery_method_id=?",
 		objectID, deliveryMethodID,
@@ -176,7 +164,7 @@ func UnlinkDeliveryMethod(objectID, deliveryMethodID int) {
 	}
 }
 
-func GetObjectProjects(objectID int) []ProjectSummary {
+func GetObjectProjects(objectID string) []ProjectSummary {
 	result := []ProjectSummary{}
 	rows, err := database.UpcycleConnect.Query(
 		"SELECT p.id, p.name FROM PROJECTS p JOIN OBJECT_PROJECT op ON p.id=op.project_id WHERE op.object_id=?",
@@ -195,7 +183,7 @@ func GetObjectProjects(objectID int) []ProjectSummary {
 	return result
 }
 
-func LinkProject(objectID, projectID int) {
+func LinkProject(objectID string, projectID int) {
 	_, err := database.UpcycleConnect.Exec(
 		"INSERT IGNORE INTO OBJECT_PROJECT (object_id, project_id) VALUES (?, ?)",
 		objectID, projectID,
@@ -205,7 +193,7 @@ func LinkProject(objectID, projectID int) {
 	}
 }
 
-func UnlinkProject(objectID, projectID int) {
+func UnlinkProject(objectID string, projectID int) {
 	_, err := database.UpcycleConnect.Exec(
 		"DELETE FROM OBJECT_PROJECT WHERE object_id=? AND project_id=?",
 		objectID, projectID,
@@ -215,7 +203,7 @@ func UnlinkProject(objectID, projectID int) {
 	}
 }
 
-func GetObjectUsers(objectID int) []UserSummary {
+func GetObjectUsers(objectID string) []UserSummary {
 	result := []UserSummary{}
 	rows, err := database.UpcycleConnect.Query(
 		"SELECT u.id, u.username FROM USERS u JOIN OBJECT_USER ou ON u.id=ou.user_id WHERE ou.object_id=?",
@@ -234,7 +222,7 @@ func GetObjectUsers(objectID int) []UserSummary {
 	return result
 }
 
-func LinkUser(objectID int, userID string) error {
+func LinkUser(objectID string, userID string) error {
 	_, err := database.UpcycleConnect.Exec(
 		"INSERT IGNORE INTO OBJECT_USER (object_id, user_id) VALUES (?, ?)",
 		objectID, userID,
@@ -246,7 +234,7 @@ func LinkUser(objectID int, userID string) error {
 	return nil
 }
 
-func UnlinkUser(objectID int, userID string) error {
+func UnlinkUser(objectID string, userID string) error {
 	_, err := database.UpcycleConnect.Exec(
 		"DELETE FROM OBJECT_USER WHERE object_id=? AND user_id=?",
 		objectID, userID,

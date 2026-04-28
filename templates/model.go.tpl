@@ -20,9 +20,9 @@ type Update{{.ResourceName}}DTO struct {
 }
 
 func (m *{{.ResourceName}}) Get(columns []string, by string, value any) error {
-	return db.GetQuery[{{.ResourceName}}](database.Auth, TABLE, columns, by, value, m)
+	return db.GetQuery[{{.ResourceName}}](database.UpcycleConnect, TABLE, columns, by, value, m)
 }
 
 func (m *{{.ResourceName}}) All(columns []string, dest *[]{{.ResourceName}}) error {
-	return db.AllQuery[{{.ResourceName}}](database.Auth, TABLE, columns, dest)
+	return db.AllQuery[{{.ResourceName}}](database.UpcycleConnect, TABLE, columns, dest)
 }

@@ -19,7 +19,7 @@ func findEventStep(w http.ResponseWriter, id int) bool {
 	return true
 }
 
-func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
+func IndexEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var s event_step_models.EventStep
 	var steps []event_step_models.EventStep
@@ -31,7 +31,7 @@ func GetEventStepsHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, steps)
 }
 
-func GetEventStepHandler(w http.ResponseWriter, r *http.Request) {
+func ShowEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	id := request.Request(r, "id").ConvertToInt(w)
 	if id == -1 {
@@ -46,9 +46,9 @@ func GetEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, s)
 }
 
-func CreateEventStepHandler(w http.ResponseWriter, r *http.Request) {
+func StoreEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	var dto event_step_actions.CreateEventStepDTO
+	var dto event_step_models.CreateEventStepDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -74,7 +74,7 @@ func UpdateEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	if !findEventStep(w, id) {
 		return
 	}
-	var dto event_step_actions.UpdateEventStepDTO
+	var dto event_step_models.UpdateEventStepDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return

@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func GetDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
+func IndexDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var dm delivery_method_models.DeliveryMethod
 	var deliveryMethods []delivery_method_models.DeliveryMethod
@@ -23,7 +23,7 @@ func GetDeliveryMethodsHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, deliveryMethods)
 }
 
-func GetDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
+func ShowDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	id := request.Request(r, "id").ConvertToInt(w)
 	if id == -1 {
@@ -38,9 +38,9 @@ func GetDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, dm)
 }
 
-func CreateDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
+func StoreDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
-	var dto delivery_method_actions.CreateDeliveryMethodDTO
+	var dto delivery_method_models.CreateDeliveryMethodDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
@@ -68,7 +68,7 @@ func UpdateDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrDeliveryMethodNotFound, http.StatusNotFound)
 		return
 	}
-	var dto delivery_method_actions.UpdateDeliveryMethodDTO
+	var dto delivery_method_models.UpdateDeliveryMethodDTO
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return

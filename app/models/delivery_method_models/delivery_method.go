@@ -10,25 +10,22 @@ import (
 const TABLE = "DELIVERY_METHODS"
 
 type DeliveryMethod struct {
-	Id        int     `db:"id" json:"id"`
-	Name      string  `db:"name" json:"name"`
-	Cost      float64 `db:"cost" json:"cost"`
-	CreatedAt string  `db:"created_at" json:"created_at"`
-	UpdatedAt string  `db:"updated_at" json:"updated_at"`
+	Id        int    `db:"id" json:"id"`
+	Name      string `db:"name" json:"name"`
+	CreatedAt string `db:"created_at" json:"created_at"`
+	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
 
 type CreateDeliveryMethodDTO struct {
 	Name string
-	Cost float64
 }
 
 type UpdateDeliveryMethodDTO struct {
 	Name string
-	Cost float64
 }
 
 type ObjectSummary struct {
-	Id   int    `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -43,8 +40,8 @@ func (deliveryMethod *DeliveryMethod) All(columns []string, dest *[]DeliveryMeth
 func CreateDeliveryMethod(dto CreateDeliveryMethodDTO) *DeliveryMethod {
 	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Name)
 	res, err := database.UpcycleConnect.Exec(
-		"INSERT INTO "+TABLE+" (name, cost) VALUES (?, ?)",
-		dto.Name, dto.Cost,
+		"INSERT INTO "+TABLE+" (name) VALUES (?)",
+		dto.Name,
 	)
 	if err != nil {
 		log.Database(action, err)
@@ -57,8 +54,8 @@ func CreateDeliveryMethod(dto CreateDeliveryMethodDTO) *DeliveryMethod {
 func UpdateDeliveryMethod(id int, dto UpdateDeliveryMethodDTO) *DeliveryMethod {
 	action := fmt.Sprintf("UPDATE %s WHERE ID: %d", TABLE, id)
 	_, err := database.UpcycleConnect.Exec(
-		"UPDATE "+TABLE+" SET name=?, cost=? WHERE id=?",
-		dto.Name, dto.Cost, id,
+		"UPDATE "+TABLE+" SET name=? WHERE id=?",
+		dto.Name, id,
 	)
 	if err != nil {
 		log.Database(action, err)
