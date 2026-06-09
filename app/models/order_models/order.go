@@ -2,9 +2,9 @@ package order_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -35,8 +35,8 @@ type UpdateOrderDTO struct {
 	UserId  string
 }
 
-func (m *Order) Get(columns []string, by string, value any) error {
-	return db.GetQuery[Order](database.UpcycleConnect, TABLE, columns, by, value, m)
+func (m *Order) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[Order](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
 func (m *Order) All(columns []string, dest *[]Order) error {

@@ -2,9 +2,9 @@ package project_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -48,8 +48,8 @@ type StepSummary struct {
 	ScheduledAt string `json:"scheduled_at"`
 }
 
-func (project *Project) Get(columns []string, by string, value any) error {
-	return db.GetQuery[Project](database.UpcycleConnect, TABLE, columns, by, value, project)
+func (project *Project) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[Project](database.UpcycleConnect, TABLE, project, columns, by, value...)
 }
 
 func (project *Project) All(columns []string, dest *[]Project) error {

@@ -1,0 +1,98 @@
+services:
+  app_upcycle-connect:
+    container_name: app_upcycle-connect
+    build:
+      context: .
+      target: dev
+    volumes:
+      - .env:/app/.env
+      - ./public_key.pem:/app/public_key.pem
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    restart: unless-stopped
+    networks:
+      - app_upcycle-connect_mariadb_upcycle-connect_network
+    depends_on:
+      mariadb_upcycle-connect:
+        condition: service_healthy
+
+  mariadb_upcycle-connect:
+    container_name: mariadb_upcycle-connect
+    image: mariadb:11
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+      MARIADB_USER: "${DATABASE_USERNAME}"
+      MARIADB_PASSWORD: "${DATABASE_PASSWORD}"
+      MARIADB_DATABASE: "${DATABASE_NAME}"
+    volumes:
+      - mariadb_upcycle-connect_data:/var/lib/mysql
+    networks:
+      - mariadb_upcycle-connect_phpmyadmin_upcycle-connect_network
+      - app_upcycle-connect_mariadb_upcycle-connect_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 1s
+      timeout: 3s
+      retries: 15
+
+  phpmyadmin_upcycle-connect:
+    container_name: phpmyadmin_upcycle-connect
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: "${DATABASE_HOST}"
+      PMA_USER: "${DATABASE_USERNAME}"
+      PMA_PASSWORD: "${DATABASE_PASSWORD}"
+      PMA_PORT: "${DATABASE_PORT}"
+    depends_on:
+      - mariadb_upcycle-connect
+    ports:
+      - "8081:80"
+    networks:
+      - mariadb_upcycle-connect_phpmyadmin_upcycle-connect_network
+    restart: unless-stopped
+
+  mailpit_upcycle-connect:
+    container_name: mailpit_upcycle-connect
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - "8026:8025"
+      - "1026:1025"
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  rustfs_perms_upcycle-connect:
+    image: alpine
+    user: root
+    volumes:
+      - ./rustfs_data:/data
+    command: chown -R 10001:10001 /data
+    restart: on-failure
+
+  rustfs_upcycle-connect:
+    container_name: rustfs_upcycle-connect
+    image: rustfs/rustfs:latest
+    depends_on:
+      rustfs_perms_upcycle-connect:
+        condition: service_completed_successfully
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - ./rustfs_data:/data
+    environment:
+      - RUSTFS_ACCESS_KEY=rustfsadmin
+      - RUSTFS_SECRET_KEY=rustfsadmin
+      - RUSTFS_CONSOLE_ENABLE=true
+    command: [ "/data" ]
+    restart: unless-stopped
+
+volumes:
+  mariadb_upcycle-connect_data:
+
+networks:
+  mariadb_upcycle-connect_phpmyadmin_upcycle-connect_network:
+  app_upcycle-connect_mariadb_upcycle-connect_network:

@@ -1,10 +1,14 @@
 package rules
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
+	db2 "go-upcycle_connect-backend/utils/db"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type ValidationError struct {
@@ -106,5 +110,26 @@ func ValidateUUID(value string, attribute string, errs *[]ValidationError) {
 			Field:   attribute,
 			Message: fmt.Sprintf("%s must be a valid UUID", attribute),
 		})
+	}
+}
+
+func Unique[T any](db *sqlx.DB, table, attribute string, by string, errs *[]ValidationError, values ...interface{}) {
+	var modelT T
+
+	err := db2.GetQuery[T](db, table, &modelT, []string{"id", "email"}, by, values...)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		println(err.Error())
+		*errs = append(*errs, ValidationError{
+			Field:   attribute,
+			Message: fmt.Sprintf("%s error", attribute)})
+		return
+	}
+
+	if err == nil {
+		*errs = append(*errs, ValidationError{
+			Field:   attribute,
+			Message: fmt.Sprintf("%s must be unique", attribute)})
+		return
 	}
 }

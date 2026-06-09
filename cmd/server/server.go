@@ -1,6 +1,7 @@
 package server
 
 import (
+	"go-upcycle_connect-backend/app/handlers/auth_handlers"
 	"go-upcycle_connect-backend/app/handlers/delivery_method_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_step_handlers"
@@ -16,7 +17,7 @@ import (
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/middleware/ratelimit_middleware"
 	"go-upcycle_connect-backend/config"
-	"go-upcycle_connect-backend/database"
+	"go-upcycle_connect-backend/var/database"
 	"net/http"
 	"os"
 	"time"
@@ -38,6 +39,8 @@ func initialize() {
 
 	// Config Initialization
 	config.InitDatabase()
+	config.InitEmail()
+	config.InitFilesystem()
 
 	err = database.UpcycleConnect.Ping()
 
@@ -62,6 +65,9 @@ func Start() {
 
 	// Health
 	http.HandleFunc("GET /health/{$}", metric_handlers.Health)
+
+	http.HandleFunc("POST /auth/login/{$}", limiterMedium.RateLimit(auth_handlers.LoginHandler))
+	http.HandleFunc("PATCH /user/{$}", limiterMedium.RateLimit(auth_middleware.IsAuth(auth_handlers.UpdateUserHandler)))
 
 	// Delivery Method routes
 	http.HandleFunc("GET /delivery-methods", limiterHigh.RateLimit(delivery_method_handlers.IndexDeliveryMethodHandler))

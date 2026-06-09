@@ -2,9 +2,9 @@ package event_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 )
 
 const TABLE = "EVENTS"
@@ -53,8 +53,8 @@ type EventStepSummary struct {
 	ScheduledAt string `json:"scheduled_at"`
 }
 
-func (event *Event) Get(columns []string, by string, value any) error {
-	return db.GetQuery[Event](database.UpcycleConnect, TABLE, columns, by, value, event)
+func (event *Event) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[Event](database.UpcycleConnect, TABLE, event, columns, by, value...)
 }
 
 func (event *Event) All(columns []string, dest *[]Event) error {

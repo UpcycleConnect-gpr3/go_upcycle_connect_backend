@@ -2,9 +2,9 @@ package order_delivery_method_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 )
 
 const TABLE = "ORDER_DELIVERY_METHOD"
@@ -27,8 +27,8 @@ type UpdateOrderDeliveryMethodDTO struct {
 	Price float64
 }
 
-func (m *OrderDeliveryMethod) Get(columns []string, by string, value any) error {
-	return db.GetQuery[OrderDeliveryMethod](database.UpcycleConnect, TABLE, columns, by, value, m)
+func (m *OrderDeliveryMethod) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[OrderDeliveryMethod](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
 func (m *OrderDeliveryMethod) All(columns []string, dest *[]OrderDeliveryMethod) error {

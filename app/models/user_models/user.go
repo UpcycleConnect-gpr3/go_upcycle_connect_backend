@@ -2,9 +2,9 @@ package user_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -13,61 +13,54 @@ const TABLE = "USERS"
 
 type User struct {
 	Id        uuid.UUID `db:"id" json:"id"`
-	Username  string    `db:"username" json:"username"`
-	Firstname string    `db:"firstname" json:"firstname"`
-	Lastname  string    `db:"lastname" json:"lastname"`
-	Email     string    `db:"email" json:"email"`
+	Firstname *string   `db:"firstname" json:"firstname"`
+	Lastname  *string   `db:"lastname" json:"lastname"`
+	Email     *string   `db:"email" json:"email"`
 	CreatedAt string    `db:"created_at" json:"created_at"`
 	UpdatedAt string    `db:"updated_at" json:"updated_at"`
 }
 
 type CreateUserDTO struct {
-	Username  string
+	Id        string
 	Firstname string
 	Lastname  string
 	Email     string
 }
-
 type UpdateUserDTO struct {
-	Username  string
 	Firstname string
 	Lastname  string
 	Email     string
 }
 
-func (user *User) Get(columns []string, by string, value any) error {
-	return db.GetQuery[User](database.UpcycleConnect, TABLE, columns, by, value, user)
+func (user *User) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[User](database.UpcycleConnect, TABLE, user, columns, by, value...)
 }
 
 func (user *User) All(columns []string, dest *[]User) error {
 	return db.AllQuery[User](database.UpcycleConnect, TABLE, columns, dest)
 }
 
-func CreateUser(dto CreateUserDTO) *User {
-	action := fmt.Sprintf("INSERT INTO %s: %s", TABLE, dto.Username)
-	id := uuid.New()
-	_, err := database.UpcycleConnect.Exec(
-		"INSERT INTO "+TABLE+" (id, username, firstname, lastname, email) VALUES (?, ?, ?, ?, ?)",
-		id, dto.Username, dto.Firstname, dto.Lastname, dto.Email,
-	)
-	if err != nil {
-		log.Database(action, err)
-		return nil
-	}
-	return &User{Id: id}
+func (user *User) Create(dto CreateUserDTO) error {
+	user.Id, _ = uuid.Parse(dto.Id)
+	user.Email = &dto.Email
+	user.Firstname = &dto.Firstname
+	user.Lastname = &dto.Lastname
+	columns := []string{"id", "email", "firstname", "lastname"}
+	return db.CreateQuery(database.UpcycleConnect, TABLE, columns, user.Id.String(), user.Email, user.Firstname, user.Lastname)
 }
 
-func UpdateUser(id uuid.UUID, dto UpdateUserDTO) *User {
-	action := fmt.Sprintf("UPDATE %s WHERE id: %s", TABLE, id.String())
-	_, err := database.UpcycleConnect.Exec(
-		"UPDATE "+TABLE+" SET username=?, firstname=?, lastname=?, email=? WHERE id=?",
-		dto.Username, dto.Firstname, dto.Lastname, dto.Email, id,
-	)
+func (user *User) Update(userDto UpdateUserDTO, userId string) error {
+	parsedId, err := uuid.Parse(userId)
 	if err != nil {
-		log.Database(action, err)
-		return nil
+		return err
 	}
-	return &User{Id: id}
+	user.Id = parsedId
+
+	user.Firstname = &userDto.Firstname
+	user.Lastname = &userDto.Lastname
+	user.Email = &userDto.Email
+
+	return db.UpdateQuery[*User](database.UpcycleConnect, TABLE, user, "id")
 }
 
 func DeleteUser(id uuid.UUID) {

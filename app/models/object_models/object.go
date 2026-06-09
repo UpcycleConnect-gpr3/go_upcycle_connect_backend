@@ -2,9 +2,9 @@ package object_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -71,8 +71,8 @@ type ScoreResponse struct {
 	Score    float64 `json:"score"`
 }
 
-func (object *Object) Get(columns []string, by string, value any) error {
-	return db.GetQuery[Object](database.UpcycleConnect, TABLE, columns, by, value, object)
+func (object *Object) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[Object](database.UpcycleConnect, TABLE, object, columns, by, value...)
 }
 
 func (object *Object) All(columns []string, dest *[]Object) error {

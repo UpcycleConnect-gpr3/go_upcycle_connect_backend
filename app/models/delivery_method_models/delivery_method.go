@@ -2,9 +2,9 @@ package delivery_method_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 )
 
 const TABLE = "DELIVERY_METHODS"
@@ -29,8 +29,8 @@ type ObjectSummary struct {
 	Name string `json:"name"`
 }
 
-func (deliveryMethod *DeliveryMethod) Get(columns []string, by string, value any) error {
-	return db.GetQuery[DeliveryMethod](database.UpcycleConnect, TABLE, columns, by, value, deliveryMethod)
+func (deliveryMethod *DeliveryMethod) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[DeliveryMethod](database.UpcycleConnect, TABLE, deliveryMethod, columns, by, value...)
 }
 
 func (deliveryMethod *DeliveryMethod) All(columns []string, dest *[]DeliveryMethod) error {
