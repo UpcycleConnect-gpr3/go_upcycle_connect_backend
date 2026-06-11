@@ -1,8 +1,8 @@
 package config
 
 import (
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/internal"
+	"go-upcycle_connect-backend/var/database"
 	"os"
 )
 

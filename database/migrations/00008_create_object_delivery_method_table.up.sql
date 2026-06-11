@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS OBJECT_DELIVERY_METHOD (
+    object_id VARCHAR(36) NOT NULL,
+    delivery_method_id INT NOT NULL,
+    PRIMARY KEY (object_id, delivery_method_id),
+    FOREIGN KEY (object_id) REFERENCES OBJECTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (delivery_method_id) REFERENCES DELIVERY_METHODS(id) ON DELETE CASCADE
+);

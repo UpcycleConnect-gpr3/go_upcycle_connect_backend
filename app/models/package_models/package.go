@@ -2,9 +2,9 @@ package package_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -35,8 +35,8 @@ type UpdatePackageDTO struct {
 	OrderId  string
 }
 
-func (m *Package) Get(columns []string, by string, value any) error {
-	return db.GetQuery[Package](database.UpcycleConnect, TABLE, columns, by, value, m)
+func (m *Package) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[Package](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
 func (m *Package) All(columns []string, dest *[]Package) error {

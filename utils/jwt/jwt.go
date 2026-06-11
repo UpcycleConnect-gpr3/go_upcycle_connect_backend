@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	publicKey *rsa.PublicKey
+	PublicKey *rsa.PublicKey
 )
 
 func init() {
@@ -33,7 +33,7 @@ func init() {
 	}
 
 	var ok bool
-	publicKey, ok = publicKeyInterface.(*rsa.PublicKey)
+	PublicKey, ok = publicKeyInterface.(*rsa.PublicKey)
 	if !ok {
 		log.Info("Public key is not an RSA key")
 	}
@@ -44,7 +44,7 @@ func VerifyJWT(tokenString string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return publicKey, nil
+		return PublicKey, nil
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to parse token: %w", err)

@@ -2,9 +2,9 @@ package object_order_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 )
 
 const TABLE = "OBJECT_ORDER"
@@ -28,8 +28,8 @@ type UpdateObjectOrderDTO struct {
 	Amount int
 }
 
-func (m *ObjectOrder) Get(columns []string, by string, value any) error {
-	return db.GetQuery[ObjectOrder](database.UpcycleConnect, TABLE, columns, by, value, m)
+func (m *ObjectOrder) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[ObjectOrder](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
 func (m *ObjectOrder) All(columns []string, dest *[]ObjectOrder) error {

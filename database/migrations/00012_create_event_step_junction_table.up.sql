@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS EVENT_STEP (
+    event_id INT NOT NULL,
+    event_step_id INT NOT NULL,
+    PRIMARY KEY (event_id, event_step_id),
+    FOREIGN KEY (event_id) REFERENCES EVENTS(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_step_id) REFERENCES EVENT_STEPS(id) ON DELETE CASCADE
+);

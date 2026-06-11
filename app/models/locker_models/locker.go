@@ -2,9 +2,9 @@ package locker_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -35,8 +35,8 @@ type UpdateLockerDTO struct {
 	ZipCode string
 }
 
-func (m *Locker) Get(columns []string, by string, value any) error {
-	return db.GetQuery[Locker](database.UpcycleConnect, TABLE, columns, by, value, m)
+func (m *Locker) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[Locker](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
 func (m *Locker) All(columns []string, dest *[]Locker) error {

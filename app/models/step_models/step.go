@@ -2,9 +2,9 @@ package step_models
 
 import (
 	"fmt"
-	"go-upcycle_connect-backend/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -41,8 +41,8 @@ type UpdateStepDTO struct {
 	ScheduledAt string
 }
 
-func (step *Step) Get(columns []string, by string, value any) error {
-	return db.GetQuery[Step](database.UpcycleConnect, TABLE, columns, by, value, step)
+func (step *Step) Get(columns []string, by string, value ...any) error {
+	return db.GetQuery[Step](database.UpcycleConnect, TABLE, step, columns, by, value...)
 }
 
 func (step *Step) All(columns []string, dest *[]Step) error {

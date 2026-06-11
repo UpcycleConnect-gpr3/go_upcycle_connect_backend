@@ -4,7 +4,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-EXPOSE 8084
+EXPOSE 4343
 CMD ["go", "run", "main.go", "serve"]
 
 
@@ -21,5 +21,5 @@ FROM alpine:latest AS prod
 
 WORKDIR /app
 COPY --from=builder /app/app .
-EXPOSE 8084
+EXPOSE 4343
 CMD ["./app", "serve"]
