@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/object_order_actions"
 	"go-upcycle_connect-backend/app/models/object_order_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -30,7 +31,7 @@ func ShowObjectOrderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var oo object_order_models.ObjectOrder
 	columns := []string{"id", "object_id", "order_id", "amount", "created_at", "updated_at"}
-	if err := oo.Get(columns, "id", id); err != nil {
+	if err := oo.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectOrderNotFound, http.StatusNotFound)
 		return
 	}
@@ -63,7 +64,7 @@ func DeleteObjectOrderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var oo object_order_models.ObjectOrder
-	if err := oo.Get([]string{"id"}, "id", id); err != nil {
+	if err := oo.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectOrderNotFound, http.StatusNotFound)
 		return
 	}

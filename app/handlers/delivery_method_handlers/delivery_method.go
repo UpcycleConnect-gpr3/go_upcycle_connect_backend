@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/delivery_method_actions"
 	"go-upcycle_connect-backend/app/models/delivery_method_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -31,7 +32,7 @@ func ShowDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var dm delivery_method_models.DeliveryMethod
 	columns := []string{"id", "name", "cost", "created_at", "updated_at"}
-	if err := dm.Get(columns, "id", id); err != nil {
+	if err := dm.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrDeliveryMethodNotFound, http.StatusNotFound)
 		return
 	}
@@ -64,7 +65,7 @@ func UpdateDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var dm delivery_method_models.DeliveryMethod
-	if err := dm.Get([]string{"id"}, "id", id); err != nil {
+	if err := dm.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrDeliveryMethodNotFound, http.StatusNotFound)
 		return
 	}
@@ -92,7 +93,7 @@ func DeleteDeliveryMethodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var dm delivery_method_models.DeliveryMethod
-	if err := dm.Get([]string{"id"}, "id", id); err != nil {
+	if err := dm.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrDeliveryMethodNotFound, http.StatusNotFound)
 		return
 	}
@@ -107,7 +108,7 @@ func GetDeliveryMethodObjectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var dm delivery_method_models.DeliveryMethod
-	if err := dm.Get([]string{"id"}, "id", id); err != nil {
+	if err := dm.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrDeliveryMethodNotFound, http.StatusNotFound)
 		return
 	}

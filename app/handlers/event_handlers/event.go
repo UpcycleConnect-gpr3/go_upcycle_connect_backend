@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/event_actions"
 	"go-upcycle_connect-backend/app/models/event_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -12,7 +13,7 @@ import (
 
 func findEvent(w http.ResponseWriter, id int) bool {
 	var e event_models.Event
-	if err := e.Get([]string{"id"}, "id", id); err != nil {
+	if err := e.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusNotFound)
 		return false
 	}
@@ -39,7 +40,7 @@ func ShowEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var e event_models.Event
 	columns := []string{"id", "title", "date", "location", "created_at", "updated_at"}
-	if err := e.Get(columns, "id", id); err != nil {
+	if err := e.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrEventNotFound, http.StatusNotFound)
 		return
 	}

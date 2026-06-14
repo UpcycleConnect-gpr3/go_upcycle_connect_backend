@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/package_actions"
 	"go-upcycle_connect-backend/app/models/package_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -31,7 +32,7 @@ func ShowPackageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var pkg package_models.Package
 	columns := []string{"id", "weight", "code", "locker_id", "order_id", "created_at", "updated_at"}
-	if err := pkg.Get(columns, "id", id); err != nil {
+	if err := pkg.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrPackageNotFound, http.StatusNotFound)
 		return
 	}
@@ -65,7 +66,7 @@ func UpdatePackageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var pkg package_models.Package
-	if err := pkg.Get([]string{"id"}, "id", id); err != nil {
+	if err := pkg.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrPackageNotFound, http.StatusNotFound)
 		return
 	}
@@ -94,7 +95,7 @@ func DeletePackageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var pkg package_models.Package
-	if err := pkg.Get([]string{"id"}, "id", id); err != nil {
+	if err := pkg.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrPackageNotFound, http.StatusNotFound)
 		return
 	}

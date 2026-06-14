@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/order_actions"
 	"go-upcycle_connect-backend/app/models/order_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -31,7 +32,7 @@ func ShowOrderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var order order_models.Order
 	columns := []string{"id", "street", "city", "zip_code", "user_id", "created_at", "updated_at"}
-	if err := order.Get(columns, "id", id); err != nil {
+	if err := order.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrOrderNotFound, http.StatusNotFound)
 		return
 	}
@@ -65,7 +66,7 @@ func UpdateOrderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var order order_models.Order
-	if err := order.Get([]string{"id"}, "id", id); err != nil {
+	if err := order.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrOrderNotFound, http.StatusNotFound)
 		return
 	}
@@ -94,7 +95,7 @@ func DeleteOrderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var order order_models.Order
-	if err := order.Get([]string{"id"}, "id", id); err != nil {
+	if err := order.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrOrderNotFound, http.StatusNotFound)
 		return
 	}

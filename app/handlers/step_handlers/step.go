@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/step_actions"
 	"go-upcycle_connect-backend/app/models/step_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -12,7 +13,7 @@ import (
 
 func findStep(w http.ResponseWriter, id string) bool {
 	var s step_models.Step
-	if err := s.Get([]string{"id"}, "id", id); err != nil {
+	if err := s.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
 		return false
 	}
@@ -40,7 +41,7 @@ func ShowStepHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var s step_models.Step
 	columns := []string{"id", "name", "description", "image_path", "user_id", "project_id", "scheduled_at", "created_at", "updated_at"}
-	if err := s.Get(columns, "id", id); err != nil {
+	if err := s.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrStepNotFound, http.StatusNotFound)
 		return
 	}

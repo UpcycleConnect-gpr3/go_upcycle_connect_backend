@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/object_actions"
 	"go-upcycle_connect-backend/app/models/object_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -14,7 +15,7 @@ import (
 
 func findObject(w http.ResponseWriter, id string) bool {
 	var obj object_models.Object
-	if err := obj.Get([]string{"id"}, "id", id); err != nil {
+	if err := obj.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return false
 	}
@@ -42,7 +43,7 @@ func ShowObjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var obj object_models.Object
 	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "quantity", "user_id", "score", "created_at", "updated_at"}
-	if err := obj.Get(columns, "id", id); err != nil {
+	if err := obj.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
 	}

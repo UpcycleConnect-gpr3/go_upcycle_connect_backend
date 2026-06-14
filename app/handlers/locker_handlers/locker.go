@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/locker_actions"
 	"go-upcycle_connect-backend/app/models/locker_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -31,7 +32,7 @@ func ShowLockerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var locker locker_models.Locker
 	columns := []string{"id", "name", "street", "city", "zip_code", "created_at", "updated_at"}
-	if err := locker.Get(columns, "id", id); err != nil {
+	if err := locker.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrLockerNotFound, http.StatusNotFound)
 		return
 	}
@@ -65,7 +66,7 @@ func UpdateLockerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var locker locker_models.Locker
-	if err := locker.Get([]string{"id"}, "id", id); err != nil {
+	if err := locker.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrLockerNotFound, http.StatusNotFound)
 		return
 	}
@@ -94,7 +95,7 @@ func DeleteLockerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var locker locker_models.Locker
-	if err := locker.Get([]string{"id"}, "id", id); err != nil {
+	if err := locker.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrLockerNotFound, http.StatusNotFound)
 		return
 	}

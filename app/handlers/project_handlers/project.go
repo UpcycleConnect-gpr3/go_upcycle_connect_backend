@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/project_actions"
 	"go-upcycle_connect-backend/app/models/project_models"
+	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
@@ -12,7 +13,7 @@ import (
 
 func findProject(w http.ResponseWriter, id int) bool {
 	var p project_models.Project
-	if err := p.Get([]string{"id"}, "id", id); err != nil {
+	if err := p.Get([]string{"id"}, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
 		return false
 	}
@@ -39,7 +40,7 @@ func ShowProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var p project_models.Project
 	columns := []string{"id", "name", "description", "image_path", "user_id", "created_at", "updated_at"}
-	if err := p.Get(columns, "id", id); err != nil {
+	if err := p.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
 		return
 	}
@@ -130,7 +131,7 @@ func LinkObjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	userId := request.Request(r, "userId").Value()
 	if userId == "" {
-		userId = "" // Allow empty userId for now
+		userId = ""
 	}
 	project_actions.LinkObject(id, objectId, userId)
 	response.NewSuccessMessage(w, response.SuccessLinked)
