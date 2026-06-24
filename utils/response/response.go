@@ -96,6 +96,7 @@ const (
 	ErrPackageNotFound             = "Package not found"
 	ErrObjectOrderNotFound         = "Object-Order not found"
 	ErrOrderDeliveryMethodNotFound = "Order-DeliveryMethod not found"
+	ErrStripe                      = "Stripe error"
 )
 
 const (

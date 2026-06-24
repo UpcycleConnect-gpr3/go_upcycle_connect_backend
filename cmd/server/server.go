@@ -3,6 +3,7 @@ package server
 import (
 	"go-upcycle_connect-backend/app/handlers/appointment_handlers"
 	"go-upcycle_connect-backend/app/handlers/auth_handlers"
+	"go-upcycle_connect-backend/app/handlers/billing_handlers"
 	"go-upcycle_connect-backend/app/handlers/delivery_method_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_step_handlers"
@@ -170,6 +171,12 @@ func Start() {
 	http.HandleFunc("GET /order-delivery-methods", limiterHigh.RateLimit(order_delivery_method_handlers.IndexOrderDeliveryMethodHandler))
 	http.HandleFunc("POST /order-delivery-methods", limiterMedium.RateLimit(auth_middleware.IsAuth(order_delivery_method_handlers.StoreOrderDeliveryMethodHandler)))
 	http.HandleFunc("DELETE /order-delivery-methods/{orderId}/{deliveryMethodId}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_delivery_method_handlers.DeleteOrderDeliveryMethodHandler)))
+
+	// Billing / Stripe routes
+	http.HandleFunc("POST /billing/checkout-session", limiterMedium.RateLimit(auth_middleware.IsAuth(billing_handlers.CreateCheckoutSessionHandler)))
+	http.HandleFunc("GET /billing/checkout-session/{id}", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetCheckoutSessionHandler)))
+	// Webhook: no auth middleware (Stripe sends no JWT) — verified by signature.
+	http.HandleFunc("POST /billing/webhook", billing_handlers.WebhookHandler)
 
 	logger.Info().Msg("Listening at http://localhost:" + os.Getenv("APP_PORT"))
 	err := http.ListenAndServe(":"+os.Getenv("APP_PORT"), corsMiddleware(http.DefaultServeMux))
