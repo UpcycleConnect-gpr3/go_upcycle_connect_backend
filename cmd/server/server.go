@@ -1,6 +1,7 @@
 package server
 
 import (
+	"go-upcycle_connect-backend/app/handlers/appointment_handlers"
 	"go-upcycle_connect-backend/app/handlers/auth_handlers"
 	"go-upcycle_connect-backend/app/handlers/delivery_method_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_handlers"
@@ -126,6 +127,12 @@ func Start() {
 	http.HandleFunc("POST /steps", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.StoreStepHandler)))
 	http.HandleFunc("PUT /steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.UpdateStepHandler)))
 	http.HandleFunc("DELETE /steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.DeleteStepHandler)))
+
+	// Appointment routes (planning personnel de l'utilisateur du token)
+	http.HandleFunc("GET /appointments", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.IndexAppointmentHandler)))
+	http.HandleFunc("POST /appointments", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.StoreAppointmentHandler)))
+	http.HandleFunc("PUT /appointments/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.UpdateAppointmentHandler)))
+	http.HandleFunc("DELETE /appointments/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.DeleteAppointmentHandler)))
 
 	// Order routes
 	http.HandleFunc("GET /orders", limiterHigh.RateLimit(order_handlers.IndexOrderHandler))
