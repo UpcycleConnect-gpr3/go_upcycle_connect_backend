@@ -2,6 +2,8 @@ package server
 
 import (
 	"go-upcycle_connect-backend/app/handlers/appointment_handlers"
+	"go-upcycle_connect-backend/app/handlers/stats_handlers"
+	"go-upcycle_connect-backend/app/handlers/ad_handlers"
 	"go-upcycle_connect-backend/app/handlers/auth_handlers"
 	"go-upcycle_connect-backend/app/handlers/billing_handlers"
 	"go-upcycle_connect-backend/app/handlers/delivery_method_handlers"
@@ -14,6 +16,7 @@ import (
 	"go-upcycle_connect-backend/app/handlers/order_delivery_method_handlers"
 	"go-upcycle_connect-backend/app/handlers/order_handlers"
 	"go-upcycle_connect-backend/app/handlers/package_handlers"
+	"go-upcycle_connect-backend/app/handlers/payment_handlers"
 	"go-upcycle_connect-backend/app/handlers/project_handlers"
 	"go-upcycle_connect-backend/app/handlers/score_handlers"
 	"go-upcycle_connect-backend/app/handlers/step_handlers"
@@ -124,6 +127,8 @@ func Start() {
 	http.HandleFunc("POST /projects/{id}/objects/{objectId}", limiterMedium.RateLimit(auth_middleware.IsAuth(project_handlers.LinkObjectHandler)))
 	http.HandleFunc("GET /projects/{id}/steps", limiterHigh.RateLimit(project_handlers.GetProjectStepsHandler))
 	http.HandleFunc("POST /projects/{id}/steps", limiterMedium.RateLimit(auth_middleware.IsAuth(project_handlers.CreateProjectStepHandler)))
+	http.HandleFunc("POST /projects/{id}/feature", limiterMedium.RateLimit(auth_middleware.IsAuth(project_handlers.FeatureProjectHandler)))
+	http.HandleFunc("DELETE /projects/{id}/feature", limiterMedium.RateLimit(auth_middleware.IsAuth(project_handlers.UnfeatureProjectHandler)))
 
 	// Step routes
 	http.HandleFunc("GET /steps", limiterHigh.RateLimit(step_handlers.IndexStepHandler))
@@ -131,6 +136,16 @@ func Start() {
 	http.HandleFunc("POST /steps", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.StoreStepHandler)))
 	http.HandleFunc("PUT /steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.UpdateStepHandler)))
 	http.HandleFunc("DELETE /steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.DeleteStepHandler)))
+
+	// Ads routes (publicites du professionnel connecte)
+	http.HandleFunc("GET /ads", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.IndexAdHandler)))
+	http.HandleFunc("POST /ads", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.StoreAdHandler)))
+	http.HandleFunc("PUT /ads/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.UpdateAdHandler)))
+	http.HandleFunc("DELETE /ads/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.DeleteAdHandler)))
+
+	// Stats & abonnement de l'utilisateur connecte
+	http.HandleFunc("GET /stats/me", limiterHigh.RateLimit(auth_middleware.IsAuth(stats_handlers.GetMyStatsHandler)))
+	http.HandleFunc("GET /subscriptions/me", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetMySubscriptionHandler)))
 
 	// Appointment routes (planning personnel de l'utilisateur du token)
 	http.HandleFunc("GET /appointments", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.IndexAppointmentHandler)))
@@ -177,7 +192,12 @@ func Start() {
 	// Billing / Stripe routes
 	http.HandleFunc("POST /billing/checkout-session", limiterMedium.RateLimit(auth_middleware.IsAuth(billing_handlers.CreateCheckoutSessionHandler)))
 	http.HandleFunc("GET /billing/checkout-session/{id}", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetCheckoutSessionHandler)))
+	// Payment routes (paiement unique d'une annonce)
+	http.HandleFunc("POST /payments/checkout", limiterMedium.RateLimit(auth_middleware.IsAuth(payment_handlers.CreatePaymentHandler)))
+	http.HandleFunc("GET /payments/session/{id}", limiterHigh.RateLimit(auth_middleware.IsAuth(payment_handlers.GetPaymentStatusHandler)))
+
 	// Webhook: no auth middleware (Stripe sends no JWT) — verified by signature.
+	// Single endpoint for both subscriptions and one-time annonce payments.
 	http.HandleFunc("POST /billing/webhook", billing_handlers.WebhookHandler)
 
 	logger.Info().Msg("Listening at http://localhost:" + os.Getenv("APP_PORT"))

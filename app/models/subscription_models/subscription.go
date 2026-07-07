@@ -26,6 +26,19 @@ func (m *Subscription) Get(columns []string, by string, value ...any) error {
 	return db.GetQuery[Subscription](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
+// GetByUser renvoie l'abonnement le plus recent de l'utilisateur (ou nil).
+func GetByUser(userId string) *Subscription {
+	var sub Subscription
+	err := database.UpcycleConnect.Get(&sub,
+		"SELECT id, user_id, stripe_session_id, stripe_subscription_id, stripe_customer_id, price_id, status, created_at, updated_at FROM "+TABLE+" WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
+		userId,
+	)
+	if err != nil {
+		return nil
+	}
+	return &sub
+}
+
 // Upsert writes a subscription keyed by stripe_session_id. It is idempotent so
 // the same Stripe webhook can be delivered multiple times without harm.
 func Upsert(s Subscription) error {

@@ -17,6 +17,7 @@ type Project struct {
 	Description string `db:"description" json:"description"`
 	ImagePath   string `db:"image_path" json:"image_path"`
 	UserId      string `db:"user_id" json:"user_id"`
+	Featured    bool   `db:"featured" json:"featured"`
 	CreatedAt   string `db:"created_at" json:"created_at"`
 	UpdatedAt   string `db:"updated_at" json:"updated_at"`
 }
@@ -86,6 +87,14 @@ func UpdateProject(id int, dto UpdateProjectDTO) *Project {
 func DeleteProject(id int) {
 	action := fmt.Sprintf("DELETE FROM %s WHERE ID: %d", TABLE, id)
 	_, err := database.UpcycleConnect.Exec("DELETE FROM "+TABLE+" WHERE id=?", id)
+	if err != nil {
+		log.Database(action, err)
+	}
+}
+
+func SetFeatured(id int, featured bool) {
+	action := fmt.Sprintf("UPDATE %s SET featured WHERE ID: %d", TABLE, id)
+	_, err := database.UpcycleConnect.Exec("UPDATE "+TABLE+" SET featured=? WHERE id=?", featured, id)
 	if err != nil {
 		log.Database(action, err)
 	}
