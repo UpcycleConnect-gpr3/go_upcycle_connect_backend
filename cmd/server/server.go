@@ -15,6 +15,7 @@ import (
 	"go-upcycle_connect-backend/app/handlers/order_handlers"
 	"go-upcycle_connect-backend/app/handlers/package_handlers"
 	"go-upcycle_connect-backend/app/handlers/project_handlers"
+	"go-upcycle_connect-backend/app/handlers/score_handlers"
 	"go-upcycle_connect-backend/app/handlers/step_handlers"
 	"go-upcycle_connect-backend/app/handlers/upload_handlers"
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
@@ -101,6 +102,7 @@ func Start() {
 	http.HandleFunc("POST /objects", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.StoreObjectHandler)))
 	http.HandleFunc("PUT /objects/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.UpdateObjectHandler)))
 	http.HandleFunc("DELETE /objects/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.DeleteObjectHandler)))
+	http.HandleFunc("GET /score/config", limiterHigh.RateLimit(score_handlers.GetScoreConfigHandler))
 	http.HandleFunc("GET /objects/{id}/score", limiterHigh.RateLimit(object_handlers.GetObjectScoreHandler))
 	http.HandleFunc("GET /objects/{id}/delivery-methods", limiterHigh.RateLimit(object_handlers.GetObjectDeliveryMethodsHandler))
 	http.HandleFunc("POST /objects/{id}/delivery-methods/{deliveryMethodId}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.LinkDeliveryMethodHandler)))
