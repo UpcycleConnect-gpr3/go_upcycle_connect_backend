@@ -41,7 +41,7 @@ type ObjectSummary struct {
 }
 
 type StepSummary struct {
-	Id          int    `json:"id"`
+	Id          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ImagePath   string `json:"image_path"`
@@ -151,9 +151,15 @@ func GetProjectSteps(projectID int) []StepSummary {
 
 func CreateProjectStep(projectID int, name, description, imagePath string, scheduledAt string) *StepSummary {
 	stepId := uuid.New().String()
+	// scheduled_at est une colonne timestamp : une chaine vide est invalide,
+	// on insere NULL quand aucune date n'est fournie.
+	var scheduled interface{}
+	if scheduledAt != "" {
+		scheduled = scheduledAt
+	}
 	_, err := database.UpcycleConnect.Exec(
 		"INSERT INTO STEPS (id, name, description, image_path, scheduled_at) VALUES (?, ?, ?, ?, ?)",
-		stepId, name, description, imagePath, scheduledAt,
+		stepId, name, description, imagePath, scheduled,
 	)
 	if err != nil {
 		log.Database("CREATE PROJECT STEP", err)
@@ -166,7 +172,7 @@ func CreateProjectStep(projectID int, name, description, imagePath string, sched
 	if err != nil {
 		log.Database("LINK STEP TO PROJECT", err)
 	}
-	return &StepSummary{Id: 0, Name: name, Description: description, ImagePath: imagePath, ScheduledAt: scheduledAt}
+	return &StepSummary{Id: stepId, Name: name, Description: description, ImagePath: imagePath, ScheduledAt: scheduledAt}
 }
 
 func LinkStep(projectID int, stepID string) error {
