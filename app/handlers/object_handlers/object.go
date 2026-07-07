@@ -3,6 +3,7 @@ package object_handlers
 import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/object_actions"
+	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/models/object_models"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
@@ -57,6 +58,8 @@ func StoreObjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
+	// L'auteur de l'annonce est l'utilisateur du token, jamais le body.
+	dto.UserId = auth_middleware.GetUserId(r.Context())
 	validationErrors, obj := object_actions.CreateObject(dto)
 	if len(validationErrors) > 0 {
 		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
