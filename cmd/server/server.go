@@ -15,6 +15,7 @@ import (
 	"go-upcycle_connect-backend/app/handlers/package_handlers"
 	"go-upcycle_connect-backend/app/handlers/project_handlers"
 	"go-upcycle_connect-backend/app/handlers/step_handlers"
+	"go-upcycle_connect-backend/app/handlers/upload_handlers"
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/middleware/ratelimit_middleware"
 	"go-upcycle_connect-backend/config"
@@ -133,6 +134,10 @@ func Start() {
 	http.HandleFunc("POST /appointments", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.StoreAppointmentHandler)))
 	http.HandleFunc("PUT /appointments/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.UpdateAppointmentHandler)))
 	http.HandleFunc("DELETE /appointments/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.DeleteAppointmentHandler)))
+
+	// Upload routes (images d'annonces)
+	http.HandleFunc("POST /upload", limiterMedium.RateLimit(auth_middleware.IsAuth(upload_handlers.StoreUploadHandler)))
+	http.Handle("GET /uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
 	// Order routes
 	http.HandleFunc("GET /orders", limiterHigh.RateLimit(order_handlers.IndexOrderHandler))

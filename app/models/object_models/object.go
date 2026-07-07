@@ -27,16 +27,16 @@ type Object struct {
 }
 
 type CreateObjectDTO struct {
-	Id                    string
-	Name                  string
-	Description           string
-	Price                 float64
-	ImagePath             string
-	ColumnForCalcTheScore string
-	Quantity              int
-	UserId                string
-	Score                 float64
-	IsAdValidated         bool
+	Id                    string  `json:"id"`
+	Name                  string  `json:"name"`
+	Description           string  `json:"description"`
+	Price                 float64 `json:"price"`
+	ImagePath             string  `json:"image_path"`
+	ColumnForCalcTheScore string  `json:"column_for_calc_the_score"`
+	Quantity              int     `json:"quantity"`
+	UserId                string  `json:"-"`
+	Score                 float64 `json:"score"`
+	IsAdValidated         bool    `json:"is_ad_validated"`
 }
 
 type UpdateObjectDTO struct {
