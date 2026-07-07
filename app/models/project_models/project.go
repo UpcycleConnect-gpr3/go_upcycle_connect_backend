@@ -22,10 +22,10 @@ type Project struct {
 }
 
 type CreateProjectDTO struct {
-	Name        string
-	Description string
-	ImagePath   string
-	UserId      string
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ImagePath   string `json:"image_path"`
+	UserId      string `json:"-"`
 }
 
 type UpdateProjectDTO struct {

@@ -3,6 +3,7 @@ package project_handlers
 import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/project_actions"
+	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/models/project_models"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
@@ -54,6 +55,7 @@ func StoreProjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
+	dto.UserId = auth_middleware.GetUserId(r.Context())
 	validationErrors, project := project_actions.CreateProject(dto)
 	if len(validationErrors) > 0 {
 		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
