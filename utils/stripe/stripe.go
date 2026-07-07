@@ -29,12 +29,14 @@ func secretKey() string { return os.Getenv("STRIPE_SECRET_KEY") }
 
 // CheckoutSession mirrors the subset of Stripe's Checkout Session we care about.
 type CheckoutSession struct {
-	ID                string `json:"id"`
-	URL               string `json:"url"`
-	PaymentStatus     string `json:"payment_status"`
-	Customer          string `json:"customer"`
-	Subscription      string `json:"subscription"`
-	ClientReferenceID string `json:"client_reference_id"`
+	ID                string            `json:"id"`
+	URL               string            `json:"url"`
+	PaymentStatus     string            `json:"payment_status"`
+	Customer          string            `json:"customer"`
+	Subscription      string            `json:"subscription"`
+	ClientReferenceID string            `json:"client_reference_id"`
+	AmountTotal       int64             `json:"amount_total"`
+	Metadata          map[string]string `json:"metadata"`
 	CustomerDetails   struct {
 		Email string `json:"email"`
 	} `json:"customer_details"`
@@ -55,6 +57,41 @@ func CreateCheckoutSession(priceID, successURL, cancelURL, clientRef string) (*C
 	form.Set("line_items[0][quantity]", "1")
 	if clientRef != "" {
 		form.Set("client_reference_id", clientRef)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, apiBase+"/v1/checkout/sessions", strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+secretKey())
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	return do(req)
+}
+
+// CreatePaymentCheckoutSession creates a one-time (mode=payment) Checkout
+// Session to buy an annonce. The price is built inline from the object's amount
+// (in cents) so no Stripe Product/Price has to be pre-created. metadata carries
+// the info the webhook needs to fulfil the purchase; clientRef ties the session
+// to the buyer.
+func CreatePaymentCheckoutSession(objectName string, amountCents int64, successURL, cancelURL, clientRef string, metadata map[string]string) (*CheckoutSession, error) {
+	if secretKey() == "" {
+		return nil, errors.New("STRIPE_SECRET_KEY is not set")
+	}
+
+	form := url.Values{}
+	form.Set("mode", "payment")
+	form.Set("success_url", successURL)
+	form.Set("cancel_url", cancelURL)
+	form.Set("line_items[0][quantity]", "1")
+	form.Set("line_items[0][price_data][currency]", "eur")
+	form.Set("line_items[0][price_data][unit_amount]", strconv.FormatInt(amountCents, 10))
+	form.Set("line_items[0][price_data][product_data][name]", objectName)
+	if clientRef != "" {
+		form.Set("client_reference_id", clientRef)
+	}
+	for k, v := range metadata {
+		form.Set("metadata["+k+"]", v)
 	}
 
 	req, err := http.NewRequest(http.MethodPost, apiBase+"/v1/checkout/sessions", strings.NewReader(form.Encode()))

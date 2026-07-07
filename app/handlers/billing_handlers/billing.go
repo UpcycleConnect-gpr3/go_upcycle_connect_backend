@@ -3,6 +3,7 @@ package billing_handlers
 import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
+	"go-upcycle_connect-backend/app/models/payment_models"
 	"go-upcycle_connect-backend/app/models/subscription_models"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
@@ -124,20 +125,50 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch event.Type {
-	case "checkout.session.completed":
+	case "checkout.session.completed", "checkout.session.async_payment_succeeded":
 		var s stripe.CheckoutSession
 		if err := json.Unmarshal(event.Data.Object, &s); err == nil {
-			_ = subscription_models.Upsert(subscription_models.Subscription{
-				UserId:               s.ClientReferenceID,
-				StripeSessionId:      s.ID,
-				StripeSubscriptionId: s.Subscription,
-				StripeCustomerId:     s.Customer,
-				Status:               "active",
-			})
+			fulfillCheckout(s)
+		}
+	case "checkout.session.expired", "checkout.session.async_payment_failed":
+		var s stripe.CheckoutSession
+		if err := json.Unmarshal(event.Data.Object, &s); err == nil {
+			if s.Metadata["type"] == "object_purchase" {
+				_ = payment_models.Upsert(payment_models.Payment{
+					ObjectId:        s.Metadata["object_id"],
+					UserId:          s.ClientReferenceID,
+					StripeSessionId: s.ID,
+					Status:          "failed",
+				})
+			}
 		}
 	case "customer.subscription.deleted":
 		// Optional: flip status to "canceled" here if you track it.
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// fulfillCheckout is the single source of truth for a completed checkout. It
+// routes on metadata["type"] set when the session was created: "object_purchase"
+// marks a one-time annonce payment paid, anything else is a subscription.
+func fulfillCheckout(s stripe.CheckoutSession) {
+	if s.Metadata["type"] == "object_purchase" {
+		_ = payment_models.Upsert(payment_models.Payment{
+			ObjectId:        s.Metadata["object_id"],
+			UserId:          s.ClientReferenceID,
+			StripeSessionId: s.ID,
+			AmountCents:     int(s.AmountTotal),
+			Status:          "paid",
+		})
+		return
+	}
+
+	_ = subscription_models.Upsert(subscription_models.Subscription{
+		UserId:               s.ClientReferenceID,
+		StripeSessionId:      s.ID,
+		StripeSubscriptionId: s.Subscription,
+		StripeCustomerId:     s.Customer,
+		Status:               "active",
+	})
 }
