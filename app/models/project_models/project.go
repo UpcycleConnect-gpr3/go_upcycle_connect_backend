@@ -160,8 +160,7 @@ func GetProjectSteps(projectID int) []StepSummary {
 
 func CreateProjectStep(projectID int, name, description, imagePath string, scheduledAt string) *StepSummary {
 	stepId := uuid.New().String()
-	// scheduled_at est une colonne timestamp : une chaine vide est invalide,
-	// on insere NULL quand aucune date n'est fournie.
+
 	var scheduled interface{}
 	if scheduledAt != "" {
 		scheduled = scheduledAt

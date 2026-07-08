@@ -14,9 +14,6 @@ func CreateUserFromToken(userId string) ([]rules.ValidationError, *user_models.U
 		return errs, nil
 	}
 
-	// username et email sont NOT NULL UNIQUE : l'id du token (unique par
-	// construction) sert de valeur de provisionnement, le profil pourra
-	// etre complete ensuite via PATCH /auth/update.
 	var user user_models.User
 	err := user.Create(user_models.CreateUserDTO{
 		Id:        userId,

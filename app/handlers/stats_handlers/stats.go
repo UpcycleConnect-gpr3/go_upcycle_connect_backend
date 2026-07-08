@@ -8,7 +8,6 @@ import (
 	"net/http"
 )
 
-// GetMyStatsHandler - GET /stats/me : statistiques de l'utilisateur du token.
 func GetMyStatsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())

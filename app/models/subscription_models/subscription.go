@@ -1,9 +1,9 @@
 package subscription_models
 
 import (
-	"go-upcycle_connect-backend/var/database"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -26,7 +26,6 @@ func (m *Subscription) Get(columns []string, by string, value ...any) error {
 	return db.GetQuery[Subscription](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
-// GetByUser renvoie l'abonnement le plus recent de l'utilisateur (ou nil).
 func GetByUser(userId string) *Subscription {
 	var sub Subscription
 	err := database.UpcycleConnect.Get(&sub,
@@ -39,8 +38,6 @@ func GetByUser(userId string) *Subscription {
 	return &sub
 }
 
-// Upsert writes a subscription keyed by stripe_session_id. It is idempotent so
-// the same Stripe webhook can be delivered multiple times without harm.
 func Upsert(s Subscription) error {
 	if s.Id == "" {
 		s.Id = uuid.New().String()

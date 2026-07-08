@@ -1,7 +1,3 @@
-// Package stripe is a tiny, dependency-free Stripe client built on the standard
-// library. It only covers what the billing flow needs: create a Checkout
-// Session, read one back, and verify webhook signatures. The Stripe secret key
-// is read from the STRIPE_SECRET_KEY environment variable and never leaves here.
 package stripe
 
 import (
@@ -27,7 +23,6 @@ var httpClient = &http.Client{Timeout: 20 * time.Second}
 
 func secretKey() string { return os.Getenv("STRIPE_SECRET_KEY") }
 
-// CheckoutSession mirrors the subset of Stripe's Checkout Session we care about.
 type CheckoutSession struct {
 	ID                string            `json:"id"`
 	URL               string            `json:"url"`
@@ -42,8 +37,6 @@ type CheckoutSession struct {
 	} `json:"customer_details"`
 }
 
-// CreateCheckoutSession creates a subscription Checkout Session and returns it
-// (the hosted URL lives in session.URL). clientRef ties the session to a user.
 func CreateCheckoutSession(priceID, successURL, cancelURL, clientRef string) (*CheckoutSession, error) {
 	if secretKey() == "" {
 		return nil, errors.New("STRIPE_SECRET_KEY is not set")
@@ -69,11 +62,6 @@ func CreateCheckoutSession(priceID, successURL, cancelURL, clientRef string) (*C
 	return do(req)
 }
 
-// CreatePaymentCheckoutSession creates a one-time (mode=payment) Checkout
-// Session to buy an annonce. The price is built inline from the object's amount
-// (in cents) so no Stripe Product/Price has to be pre-created. metadata carries
-// the info the webhook needs to fulfil the purchase; clientRef ties the session
-// to the buyer.
 func CreatePaymentCheckoutSession(objectName string, amountCents int64, successURL, cancelURL, clientRef string, metadata map[string]string) (*CheckoutSession, error) {
 	if secretKey() == "" {
 		return nil, errors.New("STRIPE_SECRET_KEY is not set")
@@ -104,7 +92,6 @@ func CreatePaymentCheckoutSession(objectName string, amountCents int64, successU
 	return do(req)
 }
 
-// GetCheckoutSession fetches a Checkout Session by id.
 func GetCheckoutSession(id string) (*CheckoutSession, error) {
 	if secretKey() == "" {
 		return nil, errors.New("STRIPE_SECRET_KEY is not set")
@@ -138,9 +125,6 @@ func do(req *http.Request) (*CheckoutSession, error) {
 	return &session, nil
 }
 
-// VerifyWebhookSignature validates the Stripe-Signature header against the raw
-// payload using the webhook signing secret (whsec_...). Same scheme as the
-// official SDK: HMAC-SHA256 over "timestamp.payload".
 func VerifyWebhookSignature(payload []byte, sigHeader, secret string) error {
 	if secret == "" {
 		return errors.New("missing STRIPE_WEBHOOK_SECRET")
@@ -164,7 +148,6 @@ func VerifyWebhookSignature(payload []byte, sigHeader, secret string) error {
 		return errors.New("invalid Stripe-Signature header")
 	}
 
-	// Reject events older than 5 minutes to mitigate replay attacks.
 	if ts, err := strconv.ParseInt(timestamp, 10, 64); err == nil {
 		if time.Since(time.Unix(ts, 0)) > 5*time.Minute {
 			return errors.New("timestamp outside tolerance")
