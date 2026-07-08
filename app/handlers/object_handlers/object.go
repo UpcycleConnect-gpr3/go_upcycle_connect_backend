@@ -29,8 +29,14 @@ func IndexObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var obj object_models.Object
 	var objects []object_models.Object
-	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "category", "item_condition", "quantity", "user_id", "score", "created_at", "updated_at"}
-	if err := obj.All(columns, &objects); err != nil {
+	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "category", "item_condition", "quantity", "user_id", "score", "is_ad_validated", "created_at", "updated_at"}
+	var err error
+	if r.URL.Query().Get("validated") == "true" {
+		err = object_models.AllValidated(columns, &objects)
+	} else {
+		err = obj.All(columns, &objects)
+	}
+	if err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
 	}
@@ -45,7 +51,7 @@ func ShowObjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var obj object_models.Object
-	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "category", "item_condition", "quantity", "user_id", "score", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "category", "item_condition", "quantity", "user_id", "score", "is_ad_validated", "created_at", "updated_at"}
 	if err := obj.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return

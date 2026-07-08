@@ -105,6 +105,8 @@ func Start() {
 	http.HandleFunc("POST /objects", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.StoreObjectHandler)))
 	http.HandleFunc("PUT /objects/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.UpdateObjectHandler)))
 	http.HandleFunc("DELETE /objects/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.DeleteObjectHandler)))
+	http.HandleFunc("POST /objects/{id}/validate", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.ValidateObjectHandler)))
+	http.HandleFunc("POST /objects/{id}/reject", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.RejectObjectHandler)))
 	http.HandleFunc("GET /score/config", limiterHigh.RateLimit(score_handlers.GetScoreConfigHandler))
 	http.HandleFunc("GET /objects/{id}/score", limiterHigh.RateLimit(object_handlers.GetObjectScoreHandler))
 	http.HandleFunc("GET /objects/{id}/delivery-methods", limiterHigh.RateLimit(object_handlers.GetObjectDeliveryMethodsHandler))
