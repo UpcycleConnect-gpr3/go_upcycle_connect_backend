@@ -147,6 +147,7 @@ func Start() {
 
 	// Stats & abonnement de l'utilisateur connecte
 	http.HandleFunc("GET /stats/me", limiterHigh.RateLimit(auth_middleware.IsAuth(stats_handlers.GetMyStatsHandler)))
+	http.HandleFunc("GET /stats/finance", limiterHigh.RateLimit(auth_middleware.IsAuth(stats_handlers.GetFinanceStatsHandler)))
 	http.HandleFunc("GET /subscriptions/me", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetMySubscriptionHandler)))
 
 	// Appointment routes (planning personnel de l'utilisateur du token)
