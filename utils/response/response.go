@@ -95,12 +95,15 @@ const (
 	ErrAdNotFound                  = "Ad not found"
 	ErrPrestataireNotFound         = "Prestataire not found"
 	ErrLockerNotFound              = "Locker not found"
+	ErrLockerFull                  = "Locker is full"
 	ErrPackageNotFound             = "Package not found"
+	ErrPackageExpired              = "Package has expired"
+	ErrPackageAlreadyRetrieved     = "Package already retrieved"
+	ErrForbidden                   = "Forbidden"
 	ErrObjectOrderNotFound         = "Object-Order not found"
 	ErrOrderDeliveryMethodNotFound = "Order-DeliveryMethod not found"
 	ErrStripe                      = "Stripe error"
 	ErrInvoiceNotFound             = "Invoice not found"
-	ErrForbidden                   = "Forbidden"
 )
 
 const (

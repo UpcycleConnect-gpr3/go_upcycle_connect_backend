@@ -12,13 +12,19 @@ import (
 const TABLE = "PACKAGES"
 
 type Package struct {
-	Id        string `db:"id" json:"id"`
-	Weight    int    `db:"weight" json:"weight"`
-	Code      string `db:"code" json:"code"`
-	LockerId  string `db:"locker_id" json:"locker_id"`
-	OrderId   string `db:"order_id" json:"order_id"`
-	CreatedAt string `db:"created_at" json:"created_at"`
-	UpdatedAt string `db:"updated_at" json:"updated_at"`
+	Id            string `db:"id" json:"id"`
+	Weight        int    `db:"weight" json:"weight"`
+	Code          string `db:"code" json:"code"`
+	LockerId      string `db:"locker_id" json:"locker_id"`
+	OrderId       string `db:"order_id" json:"order_id"`
+	ObjectId      string `db:"object_id" json:"object_id"`
+	Status        string `db:"status" json:"status"`
+	ExpiryDate    string `db:"expiry_date" json:"expiry_date"`
+	RetrieveCode  string `db:"retrieve_code" json:"retrieve_code"`
+	BuyerId       string `db:"buyer_id" json:"buyer_id"`
+	StripeSession string `db:"stripe_session_id" json:"stripe_session_id"`
+	CreatedAt     string `db:"created_at" json:"created_at"`
+	UpdatedAt     string `db:"updated_at" json:"updated_at"`
 }
 
 type CreatePackageDTO struct {

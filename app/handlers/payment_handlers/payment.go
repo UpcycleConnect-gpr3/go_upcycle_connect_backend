@@ -1,9 +1,11 @@
 package payment_handlers
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/models/object_models"
+	"go-upcycle_connect-backend/app/models/package_models"
 	"go-upcycle_connect-backend/app/models/payment_models"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
@@ -12,18 +14,27 @@ import (
 	"go-upcycle_connect-backend/utils/stripe"
 	"math"
 	"net/http"
+	"time"
 )
 
 type createPaymentDTO struct {
 	ObjectId   string `json:"object_id"`
+	LockerId   string `json:"locker_id"`
 	SuccessURL string `json:"success_url"`
 	CancelURL  string `json:"cancel_url"`
 }
 
-// CreatePaymentHandler — POST /payments/checkout (auth required)
-// Creates a one-time Stripe Checkout Session to buy the annonce (object) and
-// returns its hosted URL. The amount is derived from the object price server
-// side — the client never sends a price.
+const deliveryCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+func genDeliveryCode() string {
+	b := make([]byte, 8)
+	_, _ = rand.Read(b)
+	for i := range b {
+		b[i] = deliveryCodeAlphabet[int(b[i])%len(deliveryCodeAlphabet)]
+	}
+	return string(b)
+}
+
 func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
@@ -45,12 +56,11 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// A free annonce (don) or a zero/negative price has nothing to pay.
 	if object.Price <= 0 {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
 		return
 	}
-	// The seller cannot buy their own annonce.
+
 	if object.UserId == buyerId {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
 		return
@@ -67,6 +77,7 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		map[string]string{
 			"type":      "object_purchase",
 			"object_id": object.Id,
+			"locker_id": dto.LockerId,
 		},
 	)
 	if err != nil {
@@ -75,7 +86,6 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Record a pending payment so the webhook can reconcile it to "paid".
 	_ = payment_models.Upsert(payment_models.Payment{
 		ObjectId:        object.Id,
 		UserId:          buyerId,
@@ -84,12 +94,14 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		Status:          "pending",
 	})
 
+	if dto.LockerId != "" {
+		expiry := time.Now().Add(7 * 24 * time.Hour).Format("2006-01-02 15:04:05")
+		package_models.CreateDelivery(object.Id, dto.LockerId, buyerId, genDeliveryCode(), genDeliveryCode(), session.ID, expiry)
+	}
+
 	response.NewSuccessData(w, map[string]string{"url": session.URL})
 }
 
-// GetPaymentStatusHandler — GET /payments/session/{id} (auth required)
-// Reads the session from Stripe, reflects the result in DB, returns the status.
-// Used by the success page to poll while the webhook confirms the payment.
 func GetPaymentStatusHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
@@ -117,6 +129,7 @@ func GetPaymentStatusHandler(w http.ResponseWriter, r *http.Request) {
 			AmountCents:     int(session.AmountTotal),
 			Status:          "paid",
 		})
+		package_models.MarkPaidBySession(session.ID)
 	case "unpaid":
 		status = "unpaid"
 	}

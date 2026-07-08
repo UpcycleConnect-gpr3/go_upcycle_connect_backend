@@ -17,8 +17,6 @@ type UserStats struct {
 	ByCategory    []CategoryCount `json:"by_category"`
 }
 
-// GetUserStats agrege l'activite de l'utilisateur : nombre d'annonces,
-// de projets, CO2 total economise et repartition par categorie.
 func GetUserStats(userId string) UserStats {
 	stats := UserStats{ByCategory: []CategoryCount{}}
 

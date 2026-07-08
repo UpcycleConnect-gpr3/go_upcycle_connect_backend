@@ -5,7 +5,6 @@ import (
 	"go-upcycle_connect-backend/var/database"
 )
 
-// SetAdValidated valide (ou invalide) une annonce (service administratif).
 func SetAdValidated(id string, validated bool) error {
 	_, err := database.UpcycleConnect.Exec(
 		"UPDATE "+TABLE+" SET is_ad_validated = ?, updated_at = NOW() WHERE id = ?",
@@ -17,7 +16,6 @@ func SetAdValidated(id string, validated bool) error {
 	return err
 }
 
-// AllValidated renvoie uniquement les annonces validees (pour l'affichage public).
 func AllValidated(columns []string, dest *[]Object) error {
 	cols := "*"
 	if len(columns) > 0 {
@@ -31,4 +29,26 @@ func AllValidated(columns []string, dest *[]Object) error {
 	}
 	return database.UpcycleConnect.Select(dest,
 		"SELECT "+cols+" FROM "+TABLE+" WHERE is_ad_validated = 1 ORDER BY created_at DESC")
+}
+
+func SetStatusAndScore(id, status string, score float64) error {
+	_, err := database.UpcycleConnect.Exec(
+		"UPDATE "+TABLE+" SET status = ?, score = ?, updated_at = NOW() WHERE id = ?",
+		status, score, id,
+	)
+	if err != nil {
+		log.Database("SET OBJECT STATUS+SCORE", err)
+	}
+	return err
+}
+
+func SetStatusAndOwner(id, status, userId string) error {
+	_, err := database.UpcycleConnect.Exec(
+		"UPDATE "+TABLE+" SET status = ?, user_id = ?, updated_at = NOW() WHERE id = ?",
+		status, userId, id,
+	)
+	if err != nil {
+		log.Database("SET OBJECT STATUS+OWNER", err)
+	}
+	return err
 }
