@@ -177,6 +177,7 @@ func Start() {
 	http.HandleFunc("POST /packages/deposit", limiterMedium.RateLimit(auth_middleware.IsAuth(deposit_handlers.DepositHandler)))
 	http.HandleFunc("POST /packages/retrieve", limiterMedium.RateLimit(auth_middleware.IsAuth(deposit_handlers.RetrieveHandler)))
 	http.HandleFunc("GET /packages/code/{code}", limiterHigh.RateLimit(deposit_handlers.PackageByCodeHandler))
+	http.HandleFunc("GET /packages/deposited", limiterHigh.RateLimit(deposit_handlers.DepositedPackagesHandler))
 	http.HandleFunc("GET /packages", limiterHigh.RateLimit(package_handlers.IndexPackageHandler))
 	http.HandleFunc("GET /packages/{id}", limiterHigh.RateLimit(package_handlers.ShowPackageHandler))
 	http.HandleFunc("POST /packages", limiterMedium.RateLimit(auth_middleware.IsAuth(package_handlers.StorePackageHandler)))

@@ -1,8 +1,8 @@
 package package_models
 
 import (
-	"go-upcycle_connect-backend/var/database"
 	"go-upcycle_connect-backend/utils/log"
+	"go-upcycle_connect-backend/var/database"
 
 	"github.com/google/uuid"
 )
@@ -48,4 +48,37 @@ func MarkRetrieved(id string) error {
 		log.Database("MARK PACKAGE RETRIEVED", err)
 	}
 	return err
+}
+
+// DepositedSummary : un objet actuellement dans un conteneur, pour la liste pro.
+type DepositedSummary struct {
+	PackageId  string  `db:"package_id" json:"package_id"`
+	Code       string  `db:"code" json:"code"`
+	ObjectId   string  `db:"object_id" json:"object_id"`
+	ObjectName string  `db:"object_name" json:"object_name"`
+	Category   string  `db:"category" json:"category"`
+	Score      float64 `db:"score" json:"score"`
+	ImagePath  string  `db:"image_path" json:"image_path"`
+	LockerName string  `db:"locker_name" json:"locker_name"`
+	LockerCity string  `db:"locker_city" json:"locker_city"`
+	ExpiryDate string  `db:"expiry_date" json:"expiry_date"`
+}
+
+// GetDepositedPackages liste les objets deposes (status 'deposited') encore en
+// conteneur, avec les infos objet + locker (pour l'espace pro).
+func GetDepositedPackages() []DepositedSummary {
+	result := []DepositedSummary{}
+	err := database.UpcycleConnect.Select(&result,
+		"SELECT p.id AS package_id, p.code AS code, o.id AS object_id, o.name AS object_name, "+
+			"o.category AS category, o.score AS score, o.image_path AS image_path, "+
+			"l.name AS locker_name, l.city AS locker_city, COALESCE(p.expiry_date,'') AS expiry_date "+
+			"FROM "+TABLE+" p "+
+			"JOIN OBJECTS o ON p.object_id = o.id "+
+			"JOIN LOCKERS l ON p.locker_id = l.id "+
+			"WHERE p.status = 'deposited' ORDER BY p.created_at DESC",
+	)
+	if err != nil {
+		log.Database("SELECT DEPOSITED PACKAGES", err)
+	}
+	return result
 }

@@ -184,3 +184,10 @@ func isExpired(expiry string) bool {
 	}
 	return time.Now().After(t)
 }
+
+// DepositedPackagesHandler — GET /packages/deposited
+// Liste les objets actuellement en conteneur (pour l'espace pro).
+func DepositedPackagesHandler(w http.ResponseWriter, r *http.Request) {
+	log.Api(r)
+	response.NewSuccessData(w, package_models.GetDepositedPackages())
+}
