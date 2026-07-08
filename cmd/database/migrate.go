@@ -16,7 +16,6 @@ func initialize() {
 		log.Fatal(err)
 	}
 
-	// Config Initialization
 	config.InitDatabase()
 
 	err = database.UpcycleConnect.Ping()

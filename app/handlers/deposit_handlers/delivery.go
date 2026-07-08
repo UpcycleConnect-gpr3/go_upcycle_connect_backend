@@ -12,16 +12,12 @@ import (
 	"go-upcycle_connect-backend/utils/response"
 )
 
-// SellerDeliveriesHandler — GET /packages/sales (auth)
-// Ventes de l'utilisateur à déposer en casier (code de dépôt fourni).
 func SellerDeliveriesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())
 	response.NewSuccessData(w, package_models.GetSellerDeliveries(userId))
 }
 
-// BuyerDeliveriesHandler — GET /packages/purchases (auth)
-// Achats de l'utilisateur à récupérer en casier (code de retrait fourni).
 func BuyerDeliveriesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())
@@ -32,9 +28,6 @@ type depositConfirmDTO struct {
 	Code string `json:"code"`
 }
 
-// DepositConfirmHandler — POST /packages/deposit-confirm (auth)
-// Le vendeur saisit son code de dépôt pour ouvrir le casier et y déposer
-// l'objet vendu : la livraison passe 'deposited', le casier est décrémenté.
 func DepositConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())
@@ -50,13 +43,12 @@ func DepositConfirmHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pkg := package_models.GetByAnyCode(dto.Code)
-	// Doit être le code de dépôt (pkg.Code), une livraison en attente de dépôt.
+
 	if pkg == nil || pkg.Code != dto.Code || pkg.Status != "awaiting_deposit" {
 		response.NewErrorMessage(w, response.ErrPackageNotFound, http.StatusNotFound)
 		return
 	}
 
-	// Vérifie que l'objet appartient bien au vendeur.
 	var object object_models.Object
 	if err := object.Get([]string{"id", "user_id", "score"}, "id = ?", pkg.ObjectId); err != nil || object.UserId != userId {
 		response.NewErrorMessage(w, response.ErrForbidden, http.StatusForbidden)

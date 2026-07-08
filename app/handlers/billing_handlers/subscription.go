@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-// GetMySubscriptionHandler - GET /subscriptions/me : abonnement courant de
-// l'utilisateur du token (data null s'il n'a jamais souscrit).
 func GetMySubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())

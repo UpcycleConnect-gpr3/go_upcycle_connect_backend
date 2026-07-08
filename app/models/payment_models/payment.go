@@ -11,7 +11,6 @@ import (
 
 const TABLE = "PAYMENTS"
 
-// CommissionRate is the cut UpcycleConnect keeps on each annonce sale (10%).
 const CommissionRate = 0.10
 
 type Payment struct {
@@ -28,8 +27,6 @@ type Payment struct {
 	UpdatedAt       string `db:"updated_at" json:"updated_at"`
 }
 
-// SplitCommission returns the platform commission and the seller's net share
-// (in cents) for a given gross amount. commission = round(10%), net = rest.
 func SplitCommission(amountCents int) (commission int, net int) {
 	commission = int(math.Round(float64(amountCents) * CommissionRate))
 	net = amountCents - commission
@@ -40,9 +37,6 @@ func (m *Payment) Get(columns []string, by string, value ...any) error {
 	return db.GetQuery[Payment](database.UpcycleConnect, TABLE, m, columns, by, value...)
 }
 
-// Upsert writes a payment keyed by stripe_session_id. It is idempotent so the
-// same Stripe webhook can be delivered multiple times without creating
-// duplicates or overwriting an already-known amount with a zero one.
 func Upsert(p Payment) error {
 	if p.Id == "" {
 		p.Id = uuid.New().String()
@@ -50,8 +44,7 @@ func Upsert(p Payment) error {
 	if p.Currency == "" {
 		p.Currency = "eur"
 	}
-	// Derive the 10% commission from the amount so it stays consistent wherever
-	// the payment is written (creation, status poll, webhook).
+
 	if p.AmountCents > 0 {
 		p.CommissionCents, p.NetCents = SplitCommission(p.AmountCents)
 	}

@@ -22,8 +22,6 @@ type createSessionDTO struct {
 	CancelURL  string `json:"cancel_url"`
 }
 
-// CreateCheckoutSessionHandler — POST /billing/checkout-session (auth required)
-// Creates a Stripe Checkout Session for the logged-in user and returns its URL.
 func CreateCheckoutSessionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
@@ -46,8 +44,6 @@ func CreateCheckoutSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Record a pending subscription so it can be reconciled by the webhook
-	// (or the status endpoint) once payment completes.
 	_ = subscription_models.Upsert(subscription_models.Subscription{
 		UserId:          userId,
 		StripeSessionId: session.ID,
@@ -58,8 +54,6 @@ func CreateCheckoutSessionHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, map[string]string{"url": session.URL})
 }
 
-// GetCheckoutSessionHandler — GET /billing/checkout-session/{id} (auth required)
-// Reads the session from Stripe, reflects the result in DB, returns the status.
 func GetCheckoutSessionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
@@ -97,8 +91,6 @@ func GetCheckoutSessionHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// WebhookHandler — POST /billing/webhook (NO auth: verified by Stripe signature)
-// The source of truth: persists "active" when the checkout completes.
 func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -145,15 +137,12 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	case "customer.subscription.deleted":
-		// Optional: flip status to "canceled" here if you track it.
+
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-// fulfillCheckout is the single source of truth for a completed checkout. It
-// routes on metadata["type"] set when the session was created: "object_purchase"
-// marks a one-time annonce payment paid, anything else is a subscription.
 func fulfillCheckout(s stripe.CheckoutSession) {
 	if s.Metadata["type"] == "object_purchase" {
 		_ = payment_models.Upsert(payment_models.Payment{
@@ -163,7 +152,7 @@ func fulfillCheckout(s stripe.CheckoutSession) {
 			AmountCents:     int(s.AmountTotal),
 			Status:          "paid",
 		})
-		// Livraison casier : le paiement confirme -> en attente de depot par le vendeur.
+
 		package_models.MarkPaidBySession(s.ID)
 		return
 	}

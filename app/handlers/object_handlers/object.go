@@ -60,10 +60,9 @@ func StoreObjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
-	// L'auteur de l'annonce est l'utilisateur du token, jamais le body.
+
 	dto.UserId = auth_middleware.GetUserId(r.Context())
 
-	// Categorie/etat : defauts + validation, puis Upcycler Score calcule.
 	if dto.Category == "" {
 		dto.Category = score_models.DefaultCategory
 	}
@@ -108,8 +107,6 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reprend la categorie/etat existants si absents du body, valide, puis
-	// recalcule l'Upcycler Score.
 	var current object_models.Object
 	if err := current.Get([]string{"category", "item_condition"}, db.IdClause, id); err == nil {
 		if dto.Category == "" {

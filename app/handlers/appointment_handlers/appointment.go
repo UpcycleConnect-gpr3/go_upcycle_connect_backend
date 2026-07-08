@@ -12,8 +12,6 @@ import (
 	"strconv"
 )
 
-// Récupère le rendez-vous {id} s'il appartient à l'utilisateur du token,
-// sinon répond 404 (le planning est strictement personnel).
 func findOwnedAppointment(w http.ResponseWriter, r *http.Request) *appointment_models.Appointment {
 	id, err := strconv.Atoi(request.Request(r, "id").Value())
 	if err != nil {

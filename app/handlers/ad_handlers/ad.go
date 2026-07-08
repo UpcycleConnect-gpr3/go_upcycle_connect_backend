@@ -12,8 +12,6 @@ import (
 	"net/http"
 )
 
-// findOwnedAd renvoie la publicite {id} si elle appartient a l'utilisateur du
-// token, sinon 404 (les publicites sont personnelles).
 func findOwnedAd(w http.ResponseWriter, r *http.Request) *ad_models.Ad {
 	id := request.Request(r, "id").ConvertToInt(w)
 	if id == -1 {

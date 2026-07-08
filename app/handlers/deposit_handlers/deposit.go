@@ -17,10 +17,9 @@ import (
 	"go-upcycle_connect-backend/utils/response"
 )
 
-const codeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // sans caracteres ambigus
+const codeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 const depositTTLDays = 7
 
-// generateCode renvoie un code alphanumerique de 8 caracteres.
 func generateCode() string {
 	b := make([]byte, 8)
 	_, _ = rand.Read(b)
@@ -30,7 +29,6 @@ func generateCode() string {
 	return string(b)
 }
 
-// AvailableLockersHandler — GET /lockers/available?city=...
 func AvailableLockersHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	city := r.URL.Query().Get("city")
@@ -43,10 +41,6 @@ type depositDTO struct {
 	Weight   int    `json:"weight"`
 }
 
-// DepositHandler — POST /packages/deposit (auth)
-// Depose un objet de l'utilisateur dans un locker : verifie les slots, genere un
-// code, cree le package, decremente le locker et met l'objet "in_locker" avec
-// son score CO2 calcule cote serveur.
 func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
@@ -62,7 +56,6 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// L'objet doit exister et appartenir a l'utilisateur.
 	var object object_models.Object
 	if err := object.Get([]string{"id", "user_id", "category", "item_condition"}, db.IdClause, dto.ObjectId); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
@@ -73,7 +66,6 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Le locker doit exister et avoir un slot libre.
 	var locker locker_models.Locker
 	if err := locker.Get([]string{"id", "available_slots"}, db.IdClause, dto.LockerId); err != nil {
 		response.NewErrorMessage(w, response.ErrLockerNotFound, http.StatusNotFound)
@@ -110,10 +102,6 @@ type retrieveDTO struct {
 	PackageCode string `json:"package_code"`
 }
 
-// RetrieveHandler — POST /packages/retrieve (auth)
-// Recupere un objet via le code : verifie le code / l'expiration, marque le
-// package "retrieved", rend le slot au locker et transfere la propriete de
-// l'objet a l'utilisateur qui recupere.
 func RetrieveHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
@@ -145,7 +133,7 @@ func RetrieveHandler(w http.ResponseWriter, r *http.Request) {
 
 	newOwner := userId
 	if pkg.BuyerId != "" {
-		// Livraison d'achat : la propriete revient a l'acheteur.
+
 		newOwner = pkg.BuyerId
 	}
 	_ = package_models.MarkRetrieved(pkg.Id)
@@ -158,8 +146,6 @@ func RetrieveHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// PackageByCodeHandler — GET /packages/code/{code}
-// Pour l'ecran du locker : verifie un code et renvoie l'etat du package.
 func PackageByCodeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	code := request.Request(r, "code").Value()
@@ -181,7 +167,7 @@ func isExpired(expiry string) bool {
 	}
 	t, err := time.Parse("2006-01-02 15:04:05", expiry)
 	if err != nil {
-		// format alternatif renvoye par MySQL/driver
+
 		t, err = time.Parse(time.RFC3339, expiry)
 		if err != nil {
 			return false
@@ -190,8 +176,6 @@ func isExpired(expiry string) bool {
 	return time.Now().After(t)
 }
 
-// DepositedPackagesHandler — GET /packages/deposited
-// Liste les objets actuellement en conteneur (pour l'espace pro).
 func DepositedPackagesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	response.NewSuccessData(w, package_models.GetDepositedPackages())

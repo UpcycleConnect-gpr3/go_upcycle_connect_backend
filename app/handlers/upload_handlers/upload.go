@@ -14,7 +14,6 @@ import (
 
 const uploadDir = "uploads"
 
-// Extensions d'image autorisées.
 var allowedExt = map[string]bool{
 	".jpg":  true,
 	".jpeg": true,
@@ -23,13 +22,9 @@ var allowedExt = map[string]bool{
 	".gif":  true,
 }
 
-// StoreUploadHandler reçoit un fichier image en multipart (champ "file"),
-// l'enregistre sous uploads/<uuid>.<ext> et renvoie son chemin public.
-// Réponse : {"success":true,"data":{"path":"/uploads/<uuid>.<ext>"}}.
 func StoreUploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
-	// 10 Mo max en mémoire/disque temporaire.
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		response.NewErrorMessage(w, "Fichier trop volumineux ou invalide", http.StatusBadRequest)
 		return

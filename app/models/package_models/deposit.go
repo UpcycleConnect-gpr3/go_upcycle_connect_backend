@@ -9,8 +9,6 @@ import (
 
 const packageColumns = "id, COALESCE(weight,0) AS weight, code, locker_id, COALESCE(order_id, '') AS order_id, COALESCE(object_id, '') AS object_id, status, COALESCE(expiry_date, '') AS expiry_date, COALESCE(retrieve_code,'') AS retrieve_code, COALESCE(buyer_id,'') AS buyer_id, COALESCE(stripe_session_id,'') AS stripe_session_id, created_at, updated_at"
 
-// CreateDeposit cree un package depose (status 'deposited') pour un objet, avec
-// un code de recuperation et une date d'expiration.
 func CreateDeposit(objectId, lockerId, code string, weight int, expiryDate string) *Package {
 	id := uuid.New().String()
 	_, err := database.UpcycleConnect.Exec(
@@ -25,7 +23,6 @@ func CreateDeposit(objectId, lockerId, code string, weight int, expiryDate strin
 	return &Package{Id: id, Code: code, ObjectId: objectId, LockerId: lockerId, Status: "deposited", ExpiryDate: expiryDate}
 }
 
-// GetByCode renvoie le package correspondant au code, ou nil.
 func GetByCode(code string) *Package {
 	var pkg Package
 	err := database.UpcycleConnect.Get(&pkg,
@@ -38,7 +35,6 @@ func GetByCode(code string) *Package {
 	return &pkg
 }
 
-// MarkRetrieved passe le package en 'retrieved'.
 func MarkRetrieved(id string) error {
 	_, err := database.UpcycleConnect.Exec(
 		"UPDATE "+TABLE+" SET status = 'retrieved', updated_at = NOW() WHERE id = ?",
@@ -50,7 +46,6 @@ func MarkRetrieved(id string) error {
 	return err
 }
 
-// DepositedSummary : un objet actuellement dans un conteneur, pour la liste pro.
 type DepositedSummary struct {
 	PackageId  string  `db:"package_id" json:"package_id"`
 	Code       string  `db:"code" json:"code"`
@@ -64,8 +59,6 @@ type DepositedSummary struct {
 	ExpiryDate string  `db:"expiry_date" json:"expiry_date"`
 }
 
-// GetDepositedPackages liste les objets deposes (status 'deposited') encore en
-// conteneur, avec les infos objet + locker (pour l'espace pro).
 func GetDepositedPackages() []DepositedSummary {
 	result := []DepositedSummary{}
 	err := database.UpcycleConnect.Select(&result,

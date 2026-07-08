@@ -1,15 +1,14 @@
 package server
 
 import (
-	"go-upcycle_connect-backend/app/handlers/appointment_handlers"
-	"go-upcycle_connect-backend/app/handlers/stats_handlers"
 	"go-upcycle_connect-backend/app/handlers/ad_handlers"
+	"go-upcycle_connect-backend/app/handlers/appointment_handlers"
 	"go-upcycle_connect-backend/app/handlers/auth_handlers"
 	"go-upcycle_connect-backend/app/handlers/billing_handlers"
 	"go-upcycle_connect-backend/app/handlers/delivery_method_handlers"
+	"go-upcycle_connect-backend/app/handlers/deposit_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_step_handlers"
-	"go-upcycle_connect-backend/app/handlers/deposit_handlers"
 	"go-upcycle_connect-backend/app/handlers/locker_handlers"
 	"go-upcycle_connect-backend/app/handlers/metric_handlers"
 	"go-upcycle_connect-backend/app/handlers/object_handlers"
@@ -20,6 +19,7 @@ import (
 	"go-upcycle_connect-backend/app/handlers/payment_handlers"
 	"go-upcycle_connect-backend/app/handlers/project_handlers"
 	"go-upcycle_connect-backend/app/handlers/score_handlers"
+	"go-upcycle_connect-backend/app/handlers/stats_handlers"
 	"go-upcycle_connect-backend/app/handlers/step_handlers"
 	"go-upcycle_connect-backend/app/handlers/upload_handlers"
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
@@ -45,7 +45,6 @@ func initialize() {
 		logger.Fatal().Err(err).Msg("Error loading .env file")
 	}
 
-	// Config Initialization
 	config.InitDatabase()
 	config.InitEmail()
 	config.InitFilesystem()
@@ -64,27 +63,20 @@ func Start() {
 	logger := log.NewLoggerBuilder().WithLogLevel(zerolog.DebugLevel).WithBufferSize(10000).WithRateLimit(1000).WithGroupWindow(2 * time.Second).WithOutput(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}).Build()
 	defer logger.Close()
 
-	// Rate limiting
 	limiterMedium := ratelimit_middleware.NewRateLimiter(30, 1*time.Minute)
 	limiterHigh := ratelimit_middleware.NewRateLimiter(60, 1*time.Minute)
 
-	// Container
-	//containerBackoffice := source_middleware.Container("go-upcycle_connect-backend")
-
-	// Health
 	http.HandleFunc("GET /health/{$}", metric_handlers.Health)
 
 	http.HandleFunc("POST /auth/login/{$}", limiterMedium.RateLimit(auth_handlers.LoginHandler))
 	http.HandleFunc("PATCH /user/{$}", limiterMedium.RateLimit(auth_middleware.IsAuth(auth_handlers.UpdateUserHandler)))
 
-	// Delivery Method routes
 	http.HandleFunc("GET /delivery-methods", limiterHigh.RateLimit(delivery_method_handlers.IndexDeliveryMethodHandler))
 	http.HandleFunc("GET /delivery-methods/{id}", limiterHigh.RateLimit(delivery_method_handlers.ShowDeliveryMethodHandler))
 	http.HandleFunc("POST /delivery-methods", limiterMedium.RateLimit(auth_middleware.IsAuth(delivery_method_handlers.StoreDeliveryMethodHandler)))
 	http.HandleFunc("PUT /delivery-methods/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(delivery_method_handlers.UpdateDeliveryMethodHandler)))
 	http.HandleFunc("DELETE /delivery-methods/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(delivery_method_handlers.DeleteDeliveryMethodHandler)))
 
-	// Event routes
 	http.HandleFunc("GET /events", limiterHigh.RateLimit(event_handlers.IndexEventHandler))
 	http.HandleFunc("GET /events/{id}", limiterHigh.RateLimit(event_handlers.ShowEventHandler))
 	http.HandleFunc("POST /events", limiterMedium.RateLimit(auth_middleware.IsAuth(event_handlers.StoreEventHandler)))
@@ -93,14 +85,12 @@ func Start() {
 	http.HandleFunc("GET /events/{id}/steps", limiterHigh.RateLimit(event_handlers.GetEventStepsHandler))
 	http.HandleFunc("POST /events/{id}/steps", limiterMedium.RateLimit(auth_middleware.IsAuth(event_handlers.CreateEventStepHandler)))
 
-	// Event Step routes
 	http.HandleFunc("GET /event-steps", limiterHigh.RateLimit(event_step_handlers.IndexEventStepHandler))
 	http.HandleFunc("GET /event-steps/{id}", limiterHigh.RateLimit(event_step_handlers.ShowEventStepHandler))
 	http.HandleFunc("POST /event-steps", limiterMedium.RateLimit(auth_middleware.IsAuth(event_step_handlers.StoreEventStepHandler)))
 	http.HandleFunc("PUT /event-steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(event_step_handlers.UpdateEventStepHandler)))
 	http.HandleFunc("DELETE /event-steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(event_step_handlers.DeleteEventStepHandler)))
 
-	// Object routes
 	http.HandleFunc("GET /objects", limiterHigh.RateLimit(object_handlers.IndexObjectHandler))
 	http.HandleFunc("GET /objects/{id}", limiterHigh.RateLimit(object_handlers.ShowObjectHandler))
 	http.HandleFunc("POST /objects", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.StoreObjectHandler)))
@@ -118,7 +108,6 @@ func Start() {
 	http.HandleFunc("POST /objects/{id}/users/{userId}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.LinkUserHandler)))
 	http.HandleFunc("DELETE /objects/{id}/users/{userId}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.UnlinkUserHandler)))
 
-	// Project routes
 	http.HandleFunc("GET /projects", limiterHigh.RateLimit(project_handlers.IndexProjectHandler))
 	http.HandleFunc("GET /projects/{id}", limiterHigh.RateLimit(project_handlers.ShowProjectHandler))
 	http.HandleFunc("POST /projects", limiterMedium.RateLimit(auth_middleware.IsAuth(project_handlers.StoreProjectHandler)))
@@ -131,41 +120,34 @@ func Start() {
 	http.HandleFunc("POST /projects/{id}/feature", limiterMedium.RateLimit(auth_middleware.IsAuth(project_handlers.FeatureProjectHandler)))
 	http.HandleFunc("DELETE /projects/{id}/feature", limiterMedium.RateLimit(auth_middleware.IsAuth(project_handlers.UnfeatureProjectHandler)))
 
-	// Step routes
 	http.HandleFunc("GET /steps", limiterHigh.RateLimit(step_handlers.IndexStepHandler))
 	http.HandleFunc("GET /steps/{id}", limiterHigh.RateLimit(step_handlers.ShowStepHandler))
 	http.HandleFunc("POST /steps", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.StoreStepHandler)))
 	http.HandleFunc("PUT /steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.UpdateStepHandler)))
 	http.HandleFunc("DELETE /steps/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(step_handlers.DeleteStepHandler)))
 
-	// Ads routes (publicites du professionnel connecte)
 	http.HandleFunc("GET /ads", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.IndexAdHandler)))
 	http.HandleFunc("POST /ads", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.StoreAdHandler)))
 	http.HandleFunc("PUT /ads/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.UpdateAdHandler)))
 	http.HandleFunc("DELETE /ads/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(ad_handlers.DeleteAdHandler)))
 
-	// Stats & abonnement de l'utilisateur connecte
 	http.HandleFunc("GET /stats/me", limiterHigh.RateLimit(auth_middleware.IsAuth(stats_handlers.GetMyStatsHandler)))
 	http.HandleFunc("GET /subscriptions/me", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetMySubscriptionHandler)))
 
-	// Appointment routes (planning personnel de l'utilisateur du token)
 	http.HandleFunc("GET /appointments", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.IndexAppointmentHandler)))
 	http.HandleFunc("POST /appointments", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.StoreAppointmentHandler)))
 	http.HandleFunc("PUT /appointments/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.UpdateAppointmentHandler)))
 	http.HandleFunc("DELETE /appointments/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.DeleteAppointmentHandler)))
 
-	// Upload routes (images d'annonces)
 	http.HandleFunc("POST /upload", limiterMedium.RateLimit(auth_middleware.IsAuth(upload_handlers.StoreUploadHandler)))
 	http.Handle("GET /uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
-	// Order routes
 	http.HandleFunc("GET /orders", limiterHigh.RateLimit(order_handlers.IndexOrderHandler))
 	http.HandleFunc("GET /orders/{id}", limiterHigh.RateLimit(order_handlers.ShowOrderHandler))
 	http.HandleFunc("POST /orders", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.StoreOrderHandler)))
 	http.HandleFunc("PUT /orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.UpdateOrderHandler)))
 	http.HandleFunc("DELETE /orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.DeleteOrderHandler)))
 
-	// Locker routes
 	http.HandleFunc("GET /lockers/available", limiterHigh.RateLimit(deposit_handlers.AvailableLockersHandler))
 	http.HandleFunc("GET /lockers", limiterHigh.RateLimit(locker_handlers.IndexLockerHandler))
 	http.HandleFunc("GET /lockers/{id}", limiterHigh.RateLimit(locker_handlers.ShowLockerHandler))
@@ -173,7 +155,6 @@ func Start() {
 	http.HandleFunc("PUT /lockers/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(locker_handlers.UpdateLockerHandler)))
 	http.HandleFunc("DELETE /lockers/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(locker_handlers.DeleteLockerHandler)))
 
-	// Package routes
 	http.HandleFunc("POST /packages/deposit", limiterMedium.RateLimit(auth_middleware.IsAuth(deposit_handlers.DepositHandler)))
 	http.HandleFunc("GET /packages/sales", limiterHigh.RateLimit(auth_middleware.IsAuth(deposit_handlers.SellerDeliveriesHandler)))
 	http.HandleFunc("GET /packages/purchases", limiterHigh.RateLimit(auth_middleware.IsAuth(deposit_handlers.BuyerDeliveriesHandler)))
@@ -187,26 +168,21 @@ func Start() {
 	http.HandleFunc("PUT /packages/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(package_handlers.UpdatePackageHandler)))
 	http.HandleFunc("DELETE /packages/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(package_handlers.DeletePackageHandler)))
 
-	// Object-Order routes
 	http.HandleFunc("GET /object-orders", limiterHigh.RateLimit(object_order_handlers.IndexObjectOrderHandler))
 	http.HandleFunc("GET /object-orders/{id}", limiterHigh.RateLimit(object_order_handlers.ShowObjectOrderHandler))
 	http.HandleFunc("POST /object-orders", limiterMedium.RateLimit(auth_middleware.IsAuth(object_order_handlers.StoreObjectOrderHandler)))
 	http.HandleFunc("DELETE /object-orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_order_handlers.DeleteObjectOrderHandler)))
 
-	// Order-DeliveryMethod routes
 	http.HandleFunc("GET /order-delivery-methods", limiterHigh.RateLimit(order_delivery_method_handlers.IndexOrderDeliveryMethodHandler))
 	http.HandleFunc("POST /order-delivery-methods", limiterMedium.RateLimit(auth_middleware.IsAuth(order_delivery_method_handlers.StoreOrderDeliveryMethodHandler)))
 	http.HandleFunc("DELETE /order-delivery-methods/{orderId}/{deliveryMethodId}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_delivery_method_handlers.DeleteOrderDeliveryMethodHandler)))
 
-	// Billing / Stripe routes
 	http.HandleFunc("POST /billing/checkout-session", limiterMedium.RateLimit(auth_middleware.IsAuth(billing_handlers.CreateCheckoutSessionHandler)))
 	http.HandleFunc("GET /billing/checkout-session/{id}", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetCheckoutSessionHandler)))
-	// Payment routes (paiement unique d'une annonce)
+
 	http.HandleFunc("POST /payments/checkout", limiterMedium.RateLimit(auth_middleware.IsAuth(payment_handlers.CreatePaymentHandler)))
 	http.HandleFunc("GET /payments/session/{id}", limiterHigh.RateLimit(auth_middleware.IsAuth(payment_handlers.GetPaymentStatusHandler)))
 
-	// Webhook: no auth middleware (Stripe sends no JWT) — verified by signature.
-	// Single endpoint for both subscriptions and one-time annonce payments.
 	http.HandleFunc("POST /billing/webhook", billing_handlers.WebhookHandler)
 
 	logger.Info().Msg("Listening at http://localhost:" + os.Getenv("APP_PORT"))
@@ -216,9 +192,6 @@ func Start() {
 	}
 }
 
-// corsMiddleware enables cross-origin requests from the local dev frontends
-// (Vite on a different port). Reflects the request Origin and answers the
-// preflight OPTIONS so browser calls are not blocked.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if origin := r.Header.Get("Origin"); origin != "" {

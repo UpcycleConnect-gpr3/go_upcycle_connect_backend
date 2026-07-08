@@ -7,9 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// CreateDelivery cree une livraison en casier suite a un achat : deux codes
-// (depot pour le vendeur, retrait pour l'acheteur), liee a la session Stripe.
-// Statut initial 'awaiting_payment' (bascule en 'awaiting_deposit' au paiement).
 func CreateDelivery(objectId, lockerId, buyerId, depositCode, retrieveCode, stripeSession, expiry string) *Package {
 	id := uuid.New().String()
 	_, err := database.UpcycleConnect.Exec(
@@ -24,8 +21,6 @@ func CreateDelivery(objectId, lockerId, buyerId, depositCode, retrieveCode, stri
 	return &Package{Id: id}
 }
 
-// MarkPaidBySession bascule une livraison en 'awaiting_deposit' apres paiement
-// (idempotent : ne touche que les livraisons encore en attente de paiement).
 func MarkPaidBySession(sessionId string) {
 	_, err := database.UpcycleConnect.Exec(
 		"UPDATE "+TABLE+" SET status = 'awaiting_deposit', updated_at = NOW() "+
@@ -37,7 +32,6 @@ func MarkPaidBySession(sessionId string) {
 	}
 }
 
-// CancelBySession annule une livraison dont le paiement a echoue/expire.
 func CancelBySession(sessionId string) {
 	_, err := database.UpcycleConnect.Exec(
 		"UPDATE "+TABLE+" SET status = 'canceled', updated_at = NOW() "+
@@ -49,7 +43,6 @@ func CancelBySession(sessionId string) {
 	}
 }
 
-// MarkDeposited passe la livraison en 'deposited' (le vendeur a depose l'objet).
 func MarkDeposited(id string) error {
 	_, err := database.UpcycleConnect.Exec(
 		"UPDATE "+TABLE+" SET status = 'deposited', updated_at = NOW() WHERE id = ?",
@@ -61,8 +54,6 @@ func MarkDeposited(id string) error {
 	return err
 }
 
-// GetByAnyCode renvoie le package dont le code (depot) OU le code de retrait
-// correspond. Sert au dépôt direct comme à la livraison d'achat.
 func GetByAnyCode(code string) *Package {
 	var pkg Package
 	err := database.UpcycleConnect.Get(&pkg,
@@ -75,7 +66,6 @@ func GetByAnyCode(code string) *Package {
 	return &pkg
 }
 
-// DeliverySummary : une livraison en casier, cote vendeur ou acheteur.
 type DeliverySummary struct {
 	PackageId    string  `db:"package_id" json:"package_id"`
 	Code         string  `db:"code" json:"code"`
@@ -94,8 +84,6 @@ const deliverySelect = "p.id AS package_id, p.code AS code, COALESCE(p.retrieve_
 	"l.name AS locker_name, l.city AS locker_city, p.status AS status, COALESCE(p.expiry_date,'') AS expiry_date " +
 	"FROM " + TABLE + " p JOIN OBJECTS o ON p.object_id = o.id JOIN LOCKERS l ON p.locker_id = l.id "
 
-// GetSellerDeliveries : livraisons a deposer par le vendeur (objets lui
-// appartenant, statut 'awaiting_deposit') — expose le code de depot.
 func GetSellerDeliveries(sellerId string) []DeliverySummary {
 	result := []DeliverySummary{}
 	err := database.UpcycleConnect.Select(&result,
@@ -108,8 +96,6 @@ func GetSellerDeliveries(sellerId string) []DeliverySummary {
 	return result
 }
 
-// GetBuyerDeliveries : achats a recuperer par l'acheteur (statut 'deposited')
-// — expose le code de retrait.
 func GetBuyerDeliveries(buyerId string) []DeliverySummary {
 	result := []DeliverySummary{}
 	err := database.UpcycleConnect.Select(&result,

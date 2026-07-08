@@ -35,10 +35,6 @@ func genDeliveryCode() string {
 	return string(b)
 }
 
-// CreatePaymentHandler — POST /payments/checkout (auth required)
-// Creates a one-time Stripe Checkout Session to buy the annonce (object) and
-// returns its hosted URL. The amount is derived from the object price server
-// side — the client never sends a price.
 func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
@@ -60,12 +56,11 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// A free annonce (don) or a zero/negative price has nothing to pay.
 	if object.Price <= 0 {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
 		return
 	}
-	// The seller cannot buy their own annonce.
+
 	if object.UserId == buyerId {
 		response.NewErrorMessage(w, response.ErrInvalidBody, http.StatusBadRequest)
 		return
@@ -91,7 +86,6 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Record a pending payment so the webhook can reconcile it to "paid".
 	_ = payment_models.Upsert(payment_models.Payment{
 		ObjectId:        object.Id,
 		UserId:          buyerId,
@@ -100,7 +94,6 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		Status:          "pending",
 	})
 
-	// Livraison en casier : deux codes (depot vendeur + retrait acheteur).
 	if dto.LockerId != "" {
 		expiry := time.Now().Add(7 * 24 * time.Hour).Format("2006-01-02 15:04:05")
 		package_models.CreateDelivery(object.Id, dto.LockerId, buyerId, genDeliveryCode(), genDeliveryCode(), session.ID, expiry)
@@ -109,9 +102,6 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, map[string]string{"url": session.URL})
 }
 
-// GetPaymentStatusHandler — GET /payments/session/{id} (auth required)
-// Reads the session from Stripe, reflects the result in DB, returns the status.
-// Used by the success page to poll while the webhook confirms the payment.
 func GetPaymentStatusHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 
