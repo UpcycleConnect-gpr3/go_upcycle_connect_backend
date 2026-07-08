@@ -93,6 +93,7 @@ const (
 	ErrOrderNotFound               = "Order not found"
 	ErrAppointmentNotFound         = "Appointment not found"
 	ErrAdNotFound                  = "Ad not found"
+	ErrPrestataireNotFound         = "Prestataire not found"
 	ErrLockerNotFound              = "Locker not found"
 	ErrPackageNotFound             = "Package not found"
 	ErrObjectOrderNotFound         = "Object-Order not found"

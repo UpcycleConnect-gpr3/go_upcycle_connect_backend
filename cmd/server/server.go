@@ -3,6 +3,7 @@ package server
 import (
 	"go-upcycle_connect-backend/app/handlers/appointment_handlers"
 	"go-upcycle_connect-backend/app/handlers/stats_handlers"
+	"go-upcycle_connect-backend/app/handlers/activity_handlers"
 	"go-upcycle_connect-backend/app/handlers/ad_handlers"
 	"go-upcycle_connect-backend/app/handlers/auth_handlers"
 	"go-upcycle_connect-backend/app/handlers/billing_handlers"
@@ -15,8 +16,10 @@ import (
 	"go-upcycle_connect-backend/app/handlers/object_handlers"
 	"go-upcycle_connect-backend/app/handlers/object_order_handlers"
 	"go-upcycle_connect-backend/app/handlers/order_delivery_method_handlers"
+	"go-upcycle_connect-backend/app/handlers/notification_handlers"
 	"go-upcycle_connect-backend/app/handlers/order_handlers"
 	"go-upcycle_connect-backend/app/handlers/package_handlers"
+	"go-upcycle_connect-backend/app/handlers/prestataire_handlers"
 	"go-upcycle_connect-backend/app/handlers/payment_handlers"
 	"go-upcycle_connect-backend/app/handlers/project_handlers"
 	"go-upcycle_connect-backend/app/handlers/score_handlers"
@@ -164,11 +167,27 @@ func Start() {
 	http.Handle("GET /uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
 	// Order routes
+	http.HandleFunc("GET /orders/me", limiterHigh.RateLimit(auth_middleware.IsAuth(order_handlers.MyOrdersHandler)))
 	http.HandleFunc("GET /orders", limiterHigh.RateLimit(order_handlers.IndexOrderHandler))
 	http.HandleFunc("GET /orders/{id}", limiterHigh.RateLimit(order_handlers.ShowOrderHandler))
 	http.HandleFunc("POST /orders", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.StoreOrderHandler)))
 	http.HandleFunc("PUT /orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.UpdateOrderHandler)))
 	http.HandleFunc("DELETE /orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.DeleteOrderHandler)))
+
+	// Prestataire routes
+	http.HandleFunc("GET /prestataires", limiterHigh.RateLimit(prestataire_handlers.IndexPrestataireHandler))
+	http.HandleFunc("GET /prestataires/{id}", limiterHigh.RateLimit(prestataire_handlers.ShowPrestataireHandler))
+	http.HandleFunc("POST /prestataires", limiterMedium.RateLimit(auth_middleware.IsAuth(prestataire_handlers.StorePrestataireHandler)))
+	http.HandleFunc("PUT /prestataires/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(prestataire_handlers.UpdatePrestataireHandler)))
+	http.HandleFunc("DELETE /prestataires/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(prestataire_handlers.DeletePrestataireHandler)))
+
+	// Notification routes
+	http.HandleFunc("GET /notifications/me", limiterHigh.RateLimit(auth_middleware.IsAuth(notification_handlers.MyNotificationsHandler)))
+	http.HandleFunc("POST /notifications", limiterMedium.RateLimit(auth_middleware.IsAuth(notification_handlers.StoreNotificationHandler)))
+	http.HandleFunc("POST /notifications/{id}/read", limiterMedium.RateLimit(auth_middleware.IsAuth(notification_handlers.MarkNotificationReadHandler)))
+
+	// Activity log routes
+	http.HandleFunc("GET /logs", limiterHigh.RateLimit(auth_middleware.IsAuth(activity_handlers.GetLogsHandler)))
 
 	// Locker routes
 	http.HandleFunc("GET /lockers", limiterHigh.RateLimit(locker_handlers.IndexLockerHandler))
