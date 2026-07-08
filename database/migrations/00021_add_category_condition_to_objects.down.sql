@@ -1,0 +1,3 @@
+ALTER TABLE OBJECTS
+    DROP COLUMN IF EXISTS category,
+    DROP COLUMN IF EXISTS item_condition

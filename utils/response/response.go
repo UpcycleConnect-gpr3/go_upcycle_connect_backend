@@ -91,10 +91,13 @@ const (
 	ErrEventNotFound               = "Event not found"
 	ErrEventStepNotFound           = "Event step not found"
 	ErrOrderNotFound               = "Order not found"
+	ErrAppointmentNotFound         = "Appointment not found"
+	ErrAdNotFound                  = "Ad not found"
 	ErrLockerNotFound              = "Locker not found"
 	ErrPackageNotFound             = "Package not found"
 	ErrObjectOrderNotFound         = "Object-Order not found"
 	ErrOrderDeliveryMethodNotFound = "Order-DeliveryMethod not found"
+	ErrStripe                      = "Stripe error"
 )
 
 const (

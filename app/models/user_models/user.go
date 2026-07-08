@@ -22,6 +22,7 @@ type User struct {
 
 type CreateUserDTO struct {
 	Id        string
+	Username  string
 	Firstname string
 	Lastname  string
 	Email     string
@@ -45,8 +46,8 @@ func (user *User) Create(dto CreateUserDTO) error {
 	user.Email = &dto.Email
 	user.Firstname = &dto.Firstname
 	user.Lastname = &dto.Lastname
-	columns := []string{"id", "email", "firstname", "lastname"}
-	return db.CreateQuery(database.UpcycleConnect, TABLE, columns, user.Id.String(), user.Email, user.Firstname, user.Lastname)
+	columns := []string{"id", "username", "email", "firstname", "lastname"}
+	return db.CreateQuery(database.UpcycleConnect, TABLE, columns, user.Id.String(), dto.Username, user.Email, user.Firstname, user.Lastname)
 }
 
 func (user *User) Update(userDto UpdateUserDTO, userId string) error {

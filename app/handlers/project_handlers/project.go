@@ -3,6 +3,7 @@ package project_handlers
 import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/project_actions"
+	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/models/project_models"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
@@ -24,7 +25,7 @@ func IndexProjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var p project_models.Project
 	var projects []project_models.Project
-	columns := []string{"id", "name", "description", "image_path", "user_id", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "image_path", "user_id", "featured", "created_at", "updated_at"}
 	if err := p.All(columns, &projects); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -39,7 +40,7 @@ func ShowProjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var p project_models.Project
-	columns := []string{"id", "name", "description", "image_path", "user_id", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "image_path", "user_id", "featured", "created_at", "updated_at"}
 	if err := p.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
 		return
@@ -54,6 +55,7 @@ func StoreProjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
+	dto.UserId = auth_middleware.GetUserId(r.Context())
 	validationErrors, project := project_actions.CreateProject(dto)
 	if len(validationErrors) > 0 {
 		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
@@ -194,4 +196,42 @@ func CreateProjectStepHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.NewSuccessData(w, projectStep)
+}
+
+func FeatureProjectHandler(w http.ResponseWriter, r *http.Request) {
+	log.Api(r)
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
+		return
+	}
+	var project project_models.Project
+	if err := project.Get([]string{"id", "user_id"}, db.IdClause, id); err != nil {
+		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+		return
+	}
+	if project.UserId != auth_middleware.GetUserId(r.Context()) {
+		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+		return
+	}
+	project_models.SetFeatured(id, true)
+	response.NewSuccessMessage(w, "Project featured")
+}
+
+func UnfeatureProjectHandler(w http.ResponseWriter, r *http.Request) {
+	log.Api(r)
+	id := request.Request(r, "id").ConvertToInt(w)
+	if id == -1 {
+		return
+	}
+	var project project_models.Project
+	if err := project.Get([]string{"id", "user_id"}, db.IdClause, id); err != nil {
+		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+		return
+	}
+	if project.UserId != auth_middleware.GetUserId(r.Context()) {
+		response.NewErrorMessage(w, response.ErrProjectNotFound, http.StatusNotFound)
+		return
+	}
+	project_models.SetFeatured(id, false)
+	response.NewSuccessMessage(w, "Project unfeatured")
 }

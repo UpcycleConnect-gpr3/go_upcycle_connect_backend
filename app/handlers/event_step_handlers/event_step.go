@@ -24,7 +24,7 @@ func IndexEventStepHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var s event_step_models.EventStep
 	var steps []event_step_models.EventStep
-	columns := []string{"id", "event_id", "title", "`order`", "created_at", "updated_at"}
+	columns := []string{"id", "event_id", "name", "description", "image_path", "scheduled_at", "created_at", "updated_at"}
 	if err := s.All(columns, &steps); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -39,7 +39,7 @@ func ShowEventStepHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var s event_step_models.EventStep
-	columns := []string{"id", "event_id", "title", "`order`", "created_at", "updated_at"}
+	columns := []string{"id", "event_id", "name", "description", "image_path", "scheduled_at", "created_at", "updated_at"}
 	if err := s.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrEventStepNotFound, http.StatusNotFound)
 		return

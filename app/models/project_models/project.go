@@ -17,15 +17,16 @@ type Project struct {
 	Description string `db:"description" json:"description"`
 	ImagePath   string `db:"image_path" json:"image_path"`
 	UserId      string `db:"user_id" json:"user_id"`
+	Featured    bool   `db:"featured" json:"featured"`
 	CreatedAt   string `db:"created_at" json:"created_at"`
 	UpdatedAt   string `db:"updated_at" json:"updated_at"`
 }
 
 type CreateProjectDTO struct {
-	Name        string
-	Description string
-	ImagePath   string
-	UserId      string
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ImagePath   string `json:"image_path"`
+	UserId      string `json:"-"`
 }
 
 type UpdateProjectDTO struct {
@@ -41,7 +42,7 @@ type ObjectSummary struct {
 }
 
 type StepSummary struct {
-	Id          int    `json:"id"`
+	Id          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ImagePath   string `json:"image_path"`
@@ -86,6 +87,14 @@ func UpdateProject(id int, dto UpdateProjectDTO) *Project {
 func DeleteProject(id int) {
 	action := fmt.Sprintf("DELETE FROM %s WHERE ID: %d", TABLE, id)
 	_, err := database.UpcycleConnect.Exec("DELETE FROM "+TABLE+" WHERE id=?", id)
+	if err != nil {
+		log.Database(action, err)
+	}
+}
+
+func SetFeatured(id int, featured bool) {
+	action := fmt.Sprintf("UPDATE %s SET featured WHERE ID: %d", TABLE, id)
+	_, err := database.UpcycleConnect.Exec("UPDATE "+TABLE+" SET featured=? WHERE id=?", featured, id)
 	if err != nil {
 		log.Database(action, err)
 	}
@@ -151,9 +160,15 @@ func GetProjectSteps(projectID int) []StepSummary {
 
 func CreateProjectStep(projectID int, name, description, imagePath string, scheduledAt string) *StepSummary {
 	stepId := uuid.New().String()
+	// scheduled_at est une colonne timestamp : une chaine vide est invalide,
+	// on insere NULL quand aucune date n'est fournie.
+	var scheduled interface{}
+	if scheduledAt != "" {
+		scheduled = scheduledAt
+	}
 	_, err := database.UpcycleConnect.Exec(
 		"INSERT INTO STEPS (id, name, description, image_path, scheduled_at) VALUES (?, ?, ?, ?, ?)",
-		stepId, name, description, imagePath, scheduledAt,
+		stepId, name, description, imagePath, scheduled,
 	)
 	if err != nil {
 		log.Database("CREATE PROJECT STEP", err)
@@ -166,7 +181,7 @@ func CreateProjectStep(projectID int, name, description, imagePath string, sched
 	if err != nil {
 		log.Database("LINK STEP TO PROJECT", err)
 	}
-	return &StepSummary{Id: 0, Name: name, Description: description, ImagePath: imagePath, ScheduledAt: scheduledAt}
+	return &StepSummary{Id: stepId, Name: name, Description: description, ImagePath: imagePath, ScheduledAt: scheduledAt}
 }
 
 func LinkStep(projectID int, stepID string) error {

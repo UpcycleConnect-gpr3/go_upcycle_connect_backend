@@ -18,6 +18,8 @@ type Object struct {
 	Price                 float64 `db:"price" json:"price"`
 	ImagePath             string  `db:"image_path" json:"image_path"`
 	ColumnForCalcTheScore string  `db:"column_for_calc_the_score" json:"column_for_calc_the_score"`
+	Category              string  `db:"category" json:"category"`
+	Condition             string  `db:"item_condition" json:"condition"`
 	Quantity              int     `db:"quantity" json:"quantity"`
 	UserId                string  `db:"user_id" json:"user_id"`
 	Score                 float64 `db:"score" json:"score"`
@@ -27,28 +29,32 @@ type Object struct {
 }
 
 type CreateObjectDTO struct {
-	Id                    string
-	Name                  string
-	Description           string
-	Price                 float64
-	ImagePath             string
-	ColumnForCalcTheScore string
-	Quantity              int
-	UserId                string
-	Score                 float64
-	IsAdValidated         bool
+	Id                    string  `json:"id"`
+	Name                  string  `json:"name"`
+	Description           string  `json:"description"`
+	Price                 float64 `json:"price"`
+	ImagePath             string  `json:"image_path"`
+	ColumnForCalcTheScore string  `json:"column_for_calc_the_score"`
+	Category              string  `json:"category"`
+	Condition             string  `json:"condition"`
+	Quantity              int     `json:"quantity"`
+	UserId                string  `json:"-"`
+	Score                 float64 `json:"score"`
+	IsAdValidated         bool    `json:"is_ad_validated"`
 }
 
 type UpdateObjectDTO struct {
-	Name                  string
-	Description           string
-	Price                 float64
-	ImagePath             string
-	ColumnForCalcTheScore string
-	Quantity              int
-	UserId                string
-	Score                 float64
-	IsAdValidated         bool
+	Name                  string  `json:"name"`
+	Description           string  `json:"description"`
+	Price                 float64 `json:"price"`
+	ImagePath             string  `json:"image_path"`
+	ColumnForCalcTheScore string  `json:"column_for_calc_the_score"`
+	Category              string  `json:"category"`
+	Condition             string  `json:"condition"`
+	Quantity              int     `json:"quantity"`
+	UserId                string  `json:"-"`
+	Score                 float64 `json:"score"`
+	IsAdValidated         bool    `json:"is_ad_validated"`
 }
 
 type DeliveryMethodSummary struct {
@@ -86,8 +92,8 @@ func CreateObject(dto CreateObjectDTO) *Object {
 		objectId = uuid.New().String()
 	}
 	_, err := database.UpcycleConnect.Exec(
-		"INSERT INTO "+TABLE+" (id, name, description, price, image_path, column_for_calc_the_score, quantity, user_id, score, is_ad_validated, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
-		objectId, dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score, dto.IsAdValidated,
+		"INSERT INTO "+TABLE+" (id, name, description, price, image_path, column_for_calc_the_score, category, item_condition, quantity, user_id, score, is_ad_validated, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+		objectId, dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Category, dto.Condition, dto.Quantity, dto.UserId, dto.Score, dto.IsAdValidated,
 	)
 	if err != nil {
 		log.Database(action, err)
@@ -99,8 +105,8 @@ func CreateObject(dto CreateObjectDTO) *Object {
 func UpdateObject(id string, dto UpdateObjectDTO) *Object {
 	action := fmt.Sprintf("UPDATE %s WHERE ID: %s", TABLE, id)
 	_, err := database.UpcycleConnect.Exec(
-		"UPDATE "+TABLE+" SET name=?, description=?, price=?, image_path=?, column_for_calc_the_score=?, quantity=?, user_id=?, score=?, is_ad_validated=? WHERE id=?",
-		dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Quantity, dto.UserId, dto.Score, dto.IsAdValidated, id,
+		"UPDATE "+TABLE+" SET name=?, description=?, price=?, image_path=?, column_for_calc_the_score=?, category=?, item_condition=?, quantity=?, user_id=?, score=?, is_ad_validated=? WHERE id=?",
+		dto.Name, dto.Description, dto.Price, dto.ImagePath, dto.ColumnForCalcTheScore, dto.Category, dto.Condition, dto.Quantity, dto.UserId, dto.Score, dto.IsAdValidated, id,
 	)
 	if err != nil {
 		log.Database(action, err)

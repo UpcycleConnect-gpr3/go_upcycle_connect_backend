@@ -3,11 +3,14 @@ package object_handlers
 import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/actions/object_actions"
+	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/models/object_models"
+	"go-upcycle_connect-backend/app/models/score_models"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
 	"go-upcycle_connect-backend/utils/request"
 	"go-upcycle_connect-backend/utils/response"
+	"go-upcycle_connect-backend/utils/rules"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -26,7 +29,7 @@ func IndexObjectHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var obj object_models.Object
 	var objects []object_models.Object
-	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "quantity", "user_id", "score", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "category", "item_condition", "quantity", "user_id", "score", "created_at", "updated_at"}
 	if err := obj.All(columns, &objects); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -42,7 +45,7 @@ func ShowObjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var obj object_models.Object
-	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "quantity", "user_id", "score", "created_at", "updated_at"}
+	columns := []string{"id", "name", "description", "price", "image_path", "column_for_calc_the_score", "category", "item_condition", "quantity", "user_id", "score", "created_at", "updated_at"}
 	if err := obj.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrObjectNotFound, http.StatusNotFound)
 		return
@@ -57,6 +60,26 @@ func StoreObjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
+	// L'auteur de l'annonce est l'utilisateur du token, jamais le body.
+	dto.UserId = auth_middleware.GetUserId(r.Context())
+
+	// Categorie/etat : defauts + validation, puis Upcycler Score calcule.
+	if dto.Category == "" {
+		dto.Category = score_models.DefaultCategory
+	}
+	if dto.Condition == "" {
+		dto.Condition = score_models.DefaultCondition
+	}
+	if !score_models.IsValidCategory(dto.Category) {
+		response.NewValidationError(w, response.ErrInvalidBody, []rules.ValidationError{{Field: "category", Message: "invalid category"}})
+		return
+	}
+	if !score_models.IsValidCondition(dto.Condition) {
+		response.NewValidationError(w, response.ErrInvalidBody, []rules.ValidationError{{Field: "condition", Message: "invalid condition"}})
+		return
+	}
+	dto.Score = score_models.Compute(dto.Category, dto.Condition)
+
 	validationErrors, obj := object_actions.CreateObject(dto)
 	if len(validationErrors) > 0 {
 		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
@@ -84,6 +107,34 @@ func UpdateObjectHandler(w http.ResponseWriter, r *http.Request) {
 		response.NewErrorMessage(w, response.ErrJson, http.StatusBadRequest)
 		return
 	}
+
+	// Reprend la categorie/etat existants si absents du body, valide, puis
+	// recalcule l'Upcycler Score.
+	var current object_models.Object
+	if err := current.Get([]string{"category", "item_condition"}, db.IdClause, id); err == nil {
+		if dto.Category == "" {
+			dto.Category = current.Category
+		}
+		if dto.Condition == "" {
+			dto.Condition = current.Condition
+		}
+	}
+	if dto.Category == "" {
+		dto.Category = score_models.DefaultCategory
+	}
+	if dto.Condition == "" {
+		dto.Condition = score_models.DefaultCondition
+	}
+	if !score_models.IsValidCategory(dto.Category) {
+		response.NewValidationError(w, response.ErrInvalidBody, []rules.ValidationError{{Field: "category", Message: "invalid category"}})
+		return
+	}
+	if !score_models.IsValidCondition(dto.Condition) {
+		response.NewValidationError(w, response.ErrInvalidBody, []rules.ValidationError{{Field: "condition", Message: "invalid condition"}})
+		return
+	}
+	dto.Score = score_models.Compute(dto.Category, dto.Condition)
+
 	validationErrors, updated := object_actions.UpdateObject(id, dto)
 	if len(validationErrors) > 0 {
 		response.NewValidationError(w, response.ErrInvalidBody, validationErrors)
