@@ -106,6 +106,8 @@ func Start() {
 	http.HandleFunc("POST /objects", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.StoreObjectHandler)))
 	http.HandleFunc("PUT /objects/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.UpdateObjectHandler)))
 	http.HandleFunc("DELETE /objects/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.DeleteObjectHandler)))
+	http.HandleFunc("POST /objects/{id}/validate", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.ValidateObjectHandler)))
+	http.HandleFunc("POST /objects/{id}/reject", limiterMedium.RateLimit(auth_middleware.IsAuth(object_handlers.RejectObjectHandler)))
 	http.HandleFunc("GET /score/config", limiterHigh.RateLimit(score_handlers.GetScoreConfigHandler))
 	http.HandleFunc("GET /objects/{id}/score", limiterHigh.RateLimit(object_handlers.GetObjectScoreHandler))
 	http.HandleFunc("GET /objects/{id}/delivery-methods", limiterHigh.RateLimit(object_handlers.GetObjectDeliveryMethodsHandler))
@@ -146,6 +148,7 @@ func Start() {
 
 	// Stats & abonnement de l'utilisateur connecte
 	http.HandleFunc("GET /stats/me", limiterHigh.RateLimit(auth_middleware.IsAuth(stats_handlers.GetMyStatsHandler)))
+	http.HandleFunc("GET /stats/finance", limiterHigh.RateLimit(auth_middleware.IsAuth(stats_handlers.GetFinanceStatsHandler)))
 	http.HandleFunc("GET /subscriptions/me", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetMySubscriptionHandler)))
 	http.HandleFunc("GET /invoices/me", limiterHigh.RateLimit(auth_middleware.IsAuth(invoice_handlers.IndexInvoicesHandler)))
 	http.HandleFunc("GET /invoices/{ref}/pdf", limiterHigh.RateLimit(auth_middleware.IsAuth(invoice_handlers.InvoicePdfHandler)))

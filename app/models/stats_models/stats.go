@@ -44,3 +44,31 @@ func GetUserStats(userId string) UserStats {
 
 	return stats
 }
+
+// FinanceStats : synthese financiere globale pour le back office admin.
+type FinanceStats struct {
+	RevenueCents        int `json:"revenue_cents"`         // total encaisse (achats payes)
+	CommissionCents     int `json:"commission_cents"`      // commission UpcycleConnect
+	PaidTransactions    int `json:"paid_transactions"`     // nombre d'achats payes
+	ActiveSubscriptions int `json:"active_subscriptions"`  // abonnements actifs
+	ObjectsCount        int `json:"objects_count"`
+	ProjectsCount       int `json:"projects_count"`
+}
+
+// GetFinanceStats agrege les revenus (paiements payes) et abonnements.
+func GetFinanceStats() FinanceStats {
+	var s FinanceStats
+	// Paiements payes : revenu total + commission + nombre.
+	_ = database.UpcycleConnect.QueryRow(
+		"SELECT COALESCE(SUM(amount_cents),0), COALESCE(SUM(commission_cents),0), COUNT(*) FROM PAYMENTS WHERE status = 'paid'",
+	).Scan(&s.RevenueCents, &s.CommissionCents, &s.PaidTransactions)
+
+	_ = database.UpcycleConnect.QueryRow(
+		"SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE status = 'active'",
+	).Scan(&s.ActiveSubscriptions)
+
+	_ = database.UpcycleConnect.QueryRow("SELECT COUNT(*) FROM OBJECTS").Scan(&s.ObjectsCount)
+	_ = database.UpcycleConnect.QueryRow("SELECT COUNT(*) FROM PROJECTS").Scan(&s.ProjectsCount)
+
+	return s
+}
