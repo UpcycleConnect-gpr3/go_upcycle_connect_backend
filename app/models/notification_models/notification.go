@@ -17,7 +17,6 @@ type Notification struct {
 	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
 
-// Create envoie une notification a un utilisateur.
 func Create(userId, title, body string) *Notification {
 	res, err := database.UpcycleConnect.Exec(
 		"INSERT INTO "+TABLE+" (user_id, title, body) VALUES (?, ?, ?)",
@@ -31,7 +30,6 @@ func Create(userId, title, body string) *Notification {
 	return &Notification{Id: int(id)}
 }
 
-// GetUserNotifications renvoie les notifications de l'utilisateur (recentes d'abord).
 func GetUserNotifications(userId string) []Notification {
 	notifications := []Notification{}
 	err := database.UpcycleConnect.Select(&notifications,
@@ -45,7 +43,6 @@ func GetUserNotifications(userId string) []Notification {
 	return notifications
 }
 
-// MarkRead marque une notification comme lue (si elle appartient a l'utilisateur).
 func MarkRead(id int, userId string) error {
 	_, err := database.UpcycleConnect.Exec(
 		"UPDATE "+TABLE+" SET is_read = TRUE, updated_at = NOW() WHERE id = ? AND user_id = ?",

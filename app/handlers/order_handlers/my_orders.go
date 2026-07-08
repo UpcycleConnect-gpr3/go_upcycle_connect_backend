@@ -9,8 +9,6 @@ import (
 	"go-upcycle_connect-backend/utils/response"
 )
 
-// MyOrdersHandler — GET /orders/me (auth)
-// Renvoie les commandes de l'utilisateur connecte.
 func MyOrdersHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())

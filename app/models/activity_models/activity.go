@@ -17,8 +17,6 @@ type ActivityLog struct {
 	CreatedAt string `db:"created_at" json:"created_at"`
 }
 
-// Record enregistre une action dans le journal d'activite (best-effort : une
-// erreur d'ecriture ne doit jamais bloquer l'action metier).
 func Record(userId, action, entity, entityId, detail string) {
 	_, err := database.UpcycleConnect.Exec(
 		"INSERT INTO "+TABLE+" (user_id, action, entity, entity_id, detail) VALUES (?, ?, ?, ?, ?)",
@@ -29,7 +27,6 @@ func Record(userId, action, entity, entityId, detail string) {
 	}
 }
 
-// GetAll renvoie les dernieres entrees du journal (limitees).
 func GetAll(limit int) []ActivityLog {
 	if limit <= 0 || limit > 500 {
 		limit = 100

@@ -7,12 +7,9 @@ import (
 	"go-upcycle_connect-backend/var/database"
 )
 
-// Invoice est une vue "facture" derivee des paiements (achats d'annonces) et
-// des abonnements de l'utilisateur. Le double conserve = l'enregistrement
-// paiement/abonnement persiste ; le PDF est genere a la demande a partir de lui.
 type Invoice struct {
-	Ref         string `json:"ref"`  // "pay_<id>" ou "sub_<id>"
-	Type        string `json:"type"` // "purchase" | "subscription"
+	Ref         string `json:"ref"`
+	Type        string `json:"type"`
 	Label       string `json:"label"`
 	AmountCents int    `json:"amount_cents"`
 	Currency    string `json:"currency"`
@@ -20,7 +17,6 @@ type Invoice struct {
 	IssuedAt    string `json:"issued_at"`
 }
 
-// subscriptionPlan renvoie (nom, montant en centimes) pour un price_id Stripe.
 func subscriptionPlan(priceId string) (string, int) {
 	switch priceId {
 	case os.Getenv("STRIPE_PRICE_BUSINESS"):
@@ -48,7 +44,6 @@ type subscriptionRow struct {
 	CreatedAt string `db:"created_at"`
 }
 
-// GetUserInvoices liste les factures de l'utilisateur (plus recentes d'abord).
 func GetUserInvoices(userId string) []Invoice {
 	invoices := []Invoice{}
 
@@ -100,8 +95,6 @@ func GetUserInvoices(userId string) []Invoice {
 	return invoices
 }
 
-// GetUserInvoiceByRef renvoie une facture precise de l'utilisateur, ou nil si
-// elle n'existe pas / ne lui appartient pas.
 func GetUserInvoiceByRef(userId, ref string) *Invoice {
 	for _, inv := range GetUserInvoices(userId) {
 		if inv.Ref == ref {

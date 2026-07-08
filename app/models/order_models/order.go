@@ -78,7 +78,6 @@ func DeleteOrder(id string) {
 	}
 }
 
-// GetUserOrders renvoie les commandes de l'utilisateur (les plus recentes d'abord).
 func GetUserOrders(userId string) []Order {
 	orders := []Order{}
 	err := database.UpcycleConnect.Select(&orders,

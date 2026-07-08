@@ -12,17 +12,12 @@ import (
 	"go-upcycle_connect-backend/utils/response"
 )
 
-// IndexInvoicesHandler — GET /invoices/me (auth)
-// Liste les factures de l'utilisateur (achats payes + abonnements).
 func IndexInvoicesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())
 	response.NewSuccessData(w, invoice_models.GetUserInvoices(userId))
 }
 
-// InvoicePdfHandler — GET /invoices/{ref}/pdf (auth)
-// Genere et renvoie la facture au format PDF (le "double conserve" = le
-// paiement/abonnement sous-jacent, le PDF est genere a la demande).
 func InvoicePdfHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())

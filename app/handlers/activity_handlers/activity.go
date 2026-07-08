@@ -9,8 +9,6 @@ import (
 	"go-upcycle_connect-backend/utils/response"
 )
 
-// GetLogsHandler — GET /logs (administrator)
-// Journal d'activite du back office.
 func GetLogsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	if jwt.RoleFromToken(r.Header.Get("Authorization")) != "administrator" {

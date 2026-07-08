@@ -38,12 +38,10 @@ func setObjectValidated(w http.ResponseWriter, r *http.Request, validated bool) 
 	response.NewSuccessData(w, map[string]any{"id": id, "is_ad_validated": validated})
 }
 
-// ValidateObjectHandler — POST /objects/{id}/validate (administrator)
 func ValidateObjectHandler(w http.ResponseWriter, r *http.Request) {
 	setObjectValidated(w, r, true)
 }
 
-// RejectObjectHandler — POST /objects/{id}/reject (administrator)
 func RejectObjectHandler(w http.ResponseWriter, r *http.Request) {
 	setObjectValidated(w, r, false)
 }

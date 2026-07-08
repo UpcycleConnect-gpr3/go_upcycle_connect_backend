@@ -15,8 +15,6 @@ func GetMyStatsHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, stats_models.GetUserStats(userId))
 }
 
-// GetFinanceStatsHandler — GET /stats/finance (administrator)
-// Synthese financiere globale pour le back office.
 func GetFinanceStatsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	if jwt.RoleFromToken(r.Header.Get("Authorization")) != "administrator" {

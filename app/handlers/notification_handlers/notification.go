@@ -13,7 +13,6 @@ import (
 	"go-upcycle_connect-backend/utils/response"
 )
 
-// MyNotificationsHandler — GET /notifications/me (auth)
 func MyNotificationsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())
@@ -26,8 +25,6 @@ type createNotificationDTO struct {
 	Body   string `json:"body"`
 }
 
-// StoreNotificationHandler — POST /notifications (administrator)
-// L'admin envoie une notification a un utilisateur (particulier/pro).
 func StoreNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	if jwt.RoleFromToken(r.Header.Get("Authorization")) != "administrator" {
@@ -52,7 +49,6 @@ func StoreNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	response.NewSuccessData(w, map[string]int{"id": notif.Id})
 }
 
-// MarkNotificationReadHandler — POST /notifications/{id}/read (auth)
 func MarkNotificationReadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	userId := auth_middleware.GetUserId(r.Context())

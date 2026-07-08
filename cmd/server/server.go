@@ -151,7 +151,6 @@ func Start() {
 	http.HandleFunc("POST /upload", limiterMedium.RateLimit(auth_middleware.IsAuth(upload_handlers.StoreUploadHandler)))
 	http.Handle("GET /uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
-	// Order routes
 	http.HandleFunc("GET /orders/me", limiterHigh.RateLimit(auth_middleware.IsAuth(order_handlers.MyOrdersHandler)))
 	http.HandleFunc("GET /orders", limiterHigh.RateLimit(order_handlers.IndexOrderHandler))
 	http.HandleFunc("GET /orders/{id}", limiterHigh.RateLimit(order_handlers.ShowOrderHandler))
@@ -159,22 +158,18 @@ func Start() {
 	http.HandleFunc("PUT /orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.UpdateOrderHandler)))
 	http.HandleFunc("DELETE /orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.DeleteOrderHandler)))
 
-	// Prestataire routes
 	http.HandleFunc("GET /prestataires", limiterHigh.RateLimit(prestataire_handlers.IndexPrestataireHandler))
 	http.HandleFunc("GET /prestataires/{id}", limiterHigh.RateLimit(prestataire_handlers.ShowPrestataireHandler))
 	http.HandleFunc("POST /prestataires", limiterMedium.RateLimit(auth_middleware.IsAuth(prestataire_handlers.StorePrestataireHandler)))
 	http.HandleFunc("PUT /prestataires/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(prestataire_handlers.UpdatePrestataireHandler)))
 	http.HandleFunc("DELETE /prestataires/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(prestataire_handlers.DeletePrestataireHandler)))
 
-	// Notification routes
 	http.HandleFunc("GET /notifications/me", limiterHigh.RateLimit(auth_middleware.IsAuth(notification_handlers.MyNotificationsHandler)))
 	http.HandleFunc("POST /notifications", limiterMedium.RateLimit(auth_middleware.IsAuth(notification_handlers.StoreNotificationHandler)))
 	http.HandleFunc("POST /notifications/{id}/read", limiterMedium.RateLimit(auth_middleware.IsAuth(notification_handlers.MarkNotificationReadHandler)))
 
-	// Activity log routes
 	http.HandleFunc("GET /logs", limiterHigh.RateLimit(auth_middleware.IsAuth(activity_handlers.GetLogsHandler)))
 
-	// Locker routes
 	http.HandleFunc("GET /lockers/available", limiterHigh.RateLimit(deposit_handlers.AvailableLockersHandler))
 	http.HandleFunc("GET /lockers", limiterHigh.RateLimit(locker_handlers.IndexLockerHandler))
 	http.HandleFunc("GET /lockers/{id}", limiterHigh.RateLimit(locker_handlers.ShowLockerHandler))
