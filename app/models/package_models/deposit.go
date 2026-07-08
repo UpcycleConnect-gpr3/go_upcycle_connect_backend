@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const packageColumns = "id, weight, code, locker_id, COALESCE(order_id, '') AS order_id, COALESCE(object_id, '') AS object_id, status, COALESCE(expiry_date, '') AS expiry_date, created_at, updated_at"
+const packageColumns = "id, COALESCE(weight,0) AS weight, code, locker_id, COALESCE(order_id, '') AS order_id, COALESCE(object_id, '') AS object_id, status, COALESCE(expiry_date, '') AS expiry_date, COALESCE(retrieve_code,'') AS retrieve_code, COALESCE(buyer_id,'') AS buyer_id, COALESCE(stripe_session_id,'') AS stripe_session_id, created_at, updated_at"
 
 // CreateDeposit cree un package depose (status 'deposited') pour un objet, avec
 // un code de recuperation et une date d'expiration.

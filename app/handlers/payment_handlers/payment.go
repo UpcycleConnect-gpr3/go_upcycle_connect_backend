@@ -1,9 +1,11 @@
 package payment_handlers
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
 	"go-upcycle_connect-backend/app/models/object_models"
+	"go-upcycle_connect-backend/app/models/package_models"
 	"go-upcycle_connect-backend/app/models/payment_models"
 	"go-upcycle_connect-backend/utils/db"
 	"go-upcycle_connect-backend/utils/log"
@@ -12,12 +14,25 @@ import (
 	"go-upcycle_connect-backend/utils/stripe"
 	"math"
 	"net/http"
+	"time"
 )
 
 type createPaymentDTO struct {
 	ObjectId   string `json:"object_id"`
+	LockerId   string `json:"locker_id"`
 	SuccessURL string `json:"success_url"`
 	CancelURL  string `json:"cancel_url"`
+}
+
+const deliveryCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+func genDeliveryCode() string {
+	b := make([]byte, 8)
+	_, _ = rand.Read(b)
+	for i := range b {
+		b[i] = deliveryCodeAlphabet[int(b[i])%len(deliveryCodeAlphabet)]
+	}
+	return string(b)
 }
 
 // CreatePaymentHandler — POST /payments/checkout (auth required)
@@ -67,6 +82,7 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		map[string]string{
 			"type":      "object_purchase",
 			"object_id": object.Id,
+			"locker_id": dto.LockerId,
 		},
 	)
 	if err != nil {
@@ -83,6 +99,12 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		AmountCents:     int(amountCents),
 		Status:          "pending",
 	})
+
+	// Livraison en casier : deux codes (depot vendeur + retrait acheteur).
+	if dto.LockerId != "" {
+		expiry := time.Now().Add(7 * 24 * time.Hour).Format("2006-01-02 15:04:05")
+		package_models.CreateDelivery(object.Id, dto.LockerId, buyerId, genDeliveryCode(), genDeliveryCode(), session.ID, expiry)
+	}
 
 	response.NewSuccessData(w, map[string]string{"url": session.URL})
 }
@@ -117,6 +139,7 @@ func GetPaymentStatusHandler(w http.ResponseWriter, r *http.Request) {
 			AmountCents:     int(session.AmountTotal),
 			Status:          "paid",
 		})
+		package_models.MarkPaidBySession(session.ID)
 	case "unpaid":
 		status = "unpaid"
 	}

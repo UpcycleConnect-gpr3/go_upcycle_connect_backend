@@ -129,7 +129,7 @@ func RetrieveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pkg := package_models.GetByCode(dto.PackageCode)
+	pkg := package_models.GetByAnyCode(dto.PackageCode)
 	if pkg == nil {
 		response.NewErrorMessage(w, response.ErrPackageNotFound, http.StatusNotFound)
 		return
@@ -143,9 +143,14 @@ func RetrieveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newOwner := userId
+	if pkg.BuyerId != "" {
+		// Livraison d'achat : la propriete revient a l'acheteur.
+		newOwner = pkg.BuyerId
+	}
 	_ = package_models.MarkRetrieved(pkg.Id)
 	_ = locker_models.AdjustSlots(pkg.LockerId, 1)
-	_ = object_models.SetStatusAndOwner(pkg.ObjectId, "retrieved", userId)
+	_ = object_models.SetStatusAndOwner(pkg.ObjectId, "retrieved", newOwner)
 
 	response.NewSuccessData(w, map[string]string{
 		"object_id": pkg.ObjectId,

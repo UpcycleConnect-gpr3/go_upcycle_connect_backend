@@ -98,6 +98,7 @@ const (
 	ErrPackageNotFound             = "Package not found"
 	ErrPackageExpired              = "Package has expired"
 	ErrPackageAlreadyRetrieved     = "Package already retrieved"
+	ErrForbidden                   = "Forbidden"
 	ErrObjectOrderNotFound         = "Object-Order not found"
 	ErrOrderDeliveryMethodNotFound = "Order-DeliveryMethod not found"
 	ErrStripe                      = "Stripe error"

@@ -3,6 +3,7 @@ package billing_handlers
 import (
 	"encoding/json"
 	"go-upcycle_connect-backend/app/middleware/auth_middleware"
+	"go-upcycle_connect-backend/app/models/package_models"
 	"go-upcycle_connect-backend/app/models/payment_models"
 	"go-upcycle_connect-backend/app/models/subscription_models"
 	"go-upcycle_connect-backend/utils/log"
@@ -140,6 +141,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 					StripeSessionId: s.ID,
 					Status:          "failed",
 				})
+				package_models.CancelBySession(s.ID)
 			}
 		}
 	case "customer.subscription.deleted":
@@ -161,6 +163,8 @@ func fulfillCheckout(s stripe.CheckoutSession) {
 			AmountCents:     int(s.AmountTotal),
 			Status:          "paid",
 		})
+		// Livraison casier : le paiement confirme -> en attente de depot par le vendeur.
+		package_models.MarkPaidBySession(s.ID)
 		return
 	}
 
