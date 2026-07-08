@@ -1,0 +1,1 @@
+ALTER TABLE PACKAGES DROP COLUMN object_id, DROP COLUMN status, DROP COLUMN expiry_date

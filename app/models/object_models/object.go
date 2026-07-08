@@ -24,6 +24,7 @@ type Object struct {
 	UserId                string  `db:"user_id" json:"user_id"`
 	Score                 float64 `db:"score" json:"score"`
 	IsAdValidated         bool    `db:"is_ad_validated" json:"is_ad_validated"`
+	Status                string  `db:"status" json:"status"`
 	CreatedAt             string  `db:"created_at" json:"created_at"`
 	UpdatedAt             string  `db:"updated_at" json:"updated_at"`
 }

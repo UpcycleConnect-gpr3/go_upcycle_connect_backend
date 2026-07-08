@@ -15,7 +15,7 @@ func IndexLockerHandler(w http.ResponseWriter, r *http.Request) {
 	log.Api(r)
 	var locker locker_models.Locker
 	var lockers []locker_models.Locker
-	columns := []string{"id", "name", "street", "city", "zip_code", "created_at", "updated_at"}
+	columns := []string{"id", "name", "street", "city", "zip_code", "capacity", "available_slots", "created_at", "updated_at"}
 	if err := locker.All(columns, &lockers); err != nil {
 		response.NewErrorMessage(w, response.ErrInvalidValue, http.StatusInternalServerError)
 		return
@@ -31,7 +31,7 @@ func ShowLockerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var locker locker_models.Locker
-	columns := []string{"id", "name", "street", "city", "zip_code", "created_at", "updated_at"}
+	columns := []string{"id", "name", "street", "city", "zip_code", "capacity", "available_slots", "created_at", "updated_at"}
 	if err := locker.Get(columns, db.IdClause, id); err != nil {
 		response.NewErrorMessage(w, response.ErrLockerNotFound, http.StatusNotFound)
 		return

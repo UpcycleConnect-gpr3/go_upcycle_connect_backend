@@ -9,6 +9,7 @@ import (
 	"go-upcycle_connect-backend/app/handlers/delivery_method_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_step_handlers"
+	"go-upcycle_connect-backend/app/handlers/deposit_handlers"
 	"go-upcycle_connect-backend/app/handlers/locker_handlers"
 	"go-upcycle_connect-backend/app/handlers/metric_handlers"
 	"go-upcycle_connect-backend/app/handlers/object_handlers"
@@ -165,6 +166,7 @@ func Start() {
 	http.HandleFunc("DELETE /orders/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(order_handlers.DeleteOrderHandler)))
 
 	// Locker routes
+	http.HandleFunc("GET /lockers/available", limiterHigh.RateLimit(deposit_handlers.AvailableLockersHandler))
 	http.HandleFunc("GET /lockers", limiterHigh.RateLimit(locker_handlers.IndexLockerHandler))
 	http.HandleFunc("GET /lockers/{id}", limiterHigh.RateLimit(locker_handlers.ShowLockerHandler))
 	http.HandleFunc("POST /lockers", limiterMedium.RateLimit(auth_middleware.IsAuth(locker_handlers.StoreLockerHandler)))
@@ -172,6 +174,9 @@ func Start() {
 	http.HandleFunc("DELETE /lockers/{id}", limiterMedium.RateLimit(auth_middleware.IsAuth(locker_handlers.DeleteLockerHandler)))
 
 	// Package routes
+	http.HandleFunc("POST /packages/deposit", limiterMedium.RateLimit(auth_middleware.IsAuth(deposit_handlers.DepositHandler)))
+	http.HandleFunc("POST /packages/retrieve", limiterMedium.RateLimit(auth_middleware.IsAuth(deposit_handlers.RetrieveHandler)))
+	http.HandleFunc("GET /packages/code/{code}", limiterHigh.RateLimit(deposit_handlers.PackageByCodeHandler))
 	http.HandleFunc("GET /packages", limiterHigh.RateLimit(package_handlers.IndexPackageHandler))
 	http.HandleFunc("GET /packages/{id}", limiterHigh.RateLimit(package_handlers.ShowPackageHandler))
 	http.HandleFunc("POST /packages", limiterMedium.RateLimit(auth_middleware.IsAuth(package_handlers.StorePackageHandler)))

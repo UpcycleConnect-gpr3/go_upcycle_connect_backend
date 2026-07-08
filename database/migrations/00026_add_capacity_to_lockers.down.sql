@@ -1,0 +1,1 @@
+ALTER TABLE LOCKERS DROP COLUMN capacity, DROP COLUMN available_slots

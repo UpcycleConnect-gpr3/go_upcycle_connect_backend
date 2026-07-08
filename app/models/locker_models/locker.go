@@ -12,13 +12,15 @@ import (
 const TABLE = "LOCKERS"
 
 type Locker struct {
-	Id        string `db:"id" json:"id"`
-	Name      string `db:"name" json:"name"`
-	Street    string `db:"street" json:"street"`
-	City      string `db:"city" json:"city"`
-	ZipCode   string `db:"zip_code" json:"zip_code"`
-	CreatedAt string `db:"created_at" json:"created_at"`
-	UpdatedAt string `db:"updated_at" json:"updated_at"`
+	Id             string `db:"id" json:"id"`
+	Name           string `db:"name" json:"name"`
+	Street         string `db:"street" json:"street"`
+	City           string `db:"city" json:"city"`
+	ZipCode        string `db:"zip_code" json:"zip_code"`
+	Capacity       int    `db:"capacity" json:"capacity"`
+	AvailableSlots int    `db:"available_slots" json:"available_slots"`
+	CreatedAt      string `db:"created_at" json:"created_at"`
+	UpdatedAt      string `db:"updated_at" json:"updated_at"`
 }
 
 type CreateLockerDTO struct {
