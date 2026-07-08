@@ -9,6 +9,7 @@ import (
 	"go-upcycle_connect-backend/app/handlers/delivery_method_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_handlers"
 	"go-upcycle_connect-backend/app/handlers/event_step_handlers"
+	"go-upcycle_connect-backend/app/handlers/invoice_handlers"
 	"go-upcycle_connect-backend/app/handlers/locker_handlers"
 	"go-upcycle_connect-backend/app/handlers/metric_handlers"
 	"go-upcycle_connect-backend/app/handlers/object_handlers"
@@ -146,6 +147,8 @@ func Start() {
 	// Stats & abonnement de l'utilisateur connecte
 	http.HandleFunc("GET /stats/me", limiterHigh.RateLimit(auth_middleware.IsAuth(stats_handlers.GetMyStatsHandler)))
 	http.HandleFunc("GET /subscriptions/me", limiterHigh.RateLimit(auth_middleware.IsAuth(billing_handlers.GetMySubscriptionHandler)))
+	http.HandleFunc("GET /invoices/me", limiterHigh.RateLimit(auth_middleware.IsAuth(invoice_handlers.IndexInvoicesHandler)))
+	http.HandleFunc("GET /invoices/{ref}/pdf", limiterHigh.RateLimit(auth_middleware.IsAuth(invoice_handlers.InvoicePdfHandler)))
 
 	// Appointment routes (planning personnel de l'utilisateur du token)
 	http.HandleFunc("GET /appointments", limiterMedium.RateLimit(auth_middleware.IsAuth(appointment_handlers.IndexAppointmentHandler)))

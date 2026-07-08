@@ -98,6 +98,7 @@ const (
 	ErrObjectOrderNotFound         = "Object-Order not found"
 	ErrOrderDeliveryMethodNotFound = "Order-DeliveryMethod not found"
 	ErrStripe                      = "Stripe error"
+	ErrInvoiceNotFound             = "Invoice not found"
 )
 
 const (
