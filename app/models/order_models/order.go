@@ -77,3 +77,17 @@ func DeleteOrder(id string) {
 		log.Database(action, err)
 	}
 }
+
+// GetUserOrders renvoie les commandes de l'utilisateur (les plus recentes d'abord).
+func GetUserOrders(userId string) []Order {
+	orders := []Order{}
+	err := database.UpcycleConnect.Select(&orders,
+		"SELECT id, street, city, zip_code, user_id, created_at, updated_at FROM "+TABLE+
+			" WHERE user_id = ? ORDER BY created_at DESC",
+		userId,
+	)
+	if err != nil {
+		log.Database("SELECT USER ORDERS", err)
+	}
+	return orders
+}
